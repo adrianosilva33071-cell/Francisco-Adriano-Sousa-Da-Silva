@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Production build
+build/
+dist/
+coverage/
+
+# Environment variables (keep .env.example)
+.env*
+!.env.example
+
+# Vercel & local tooling
+.vercel/
+.playwright-cli/
+.aistudio/
+public/assets/aistudio/
+
+# OS & logs
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
