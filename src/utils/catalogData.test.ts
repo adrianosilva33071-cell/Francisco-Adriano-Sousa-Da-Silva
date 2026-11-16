@@ -24,6 +24,7 @@ import {
   FAQ_ITEMS,
   INCLUDED_CHECKLIST,
   TESTIMONIAL_IMAGES,
+  SUPPORT_HIGHLIGHTS,
 } from './catalogData';
 
 test('formatBrazilianDate formats 2026-11-14 as 14/11/2026', () => {
@@ -31,10 +32,10 @@ test('formatBrazilianDate formats 2026-11-14 as 14/11/2026', () => {
   assert.equal(formatBrazilianDate(d), '14/11/2026');
 });
 
-test('calculateSavings computes exact Kit Premium discount of R$ 173,10', () => {
+test('calculateSavings computes exact difference for Kit Premium R$ 29,90', () => {
   const saved = calculateSavings(197, KIT_OPTIONS.premium.priceNumeric);
-  assert.equal(saved, 173.1);
-  assert.equal(formatCurrencyBRL(saved), 'R$ 173,10');
+  assert.equal(saved, 167.1);
+  assert.equal(formatCurrencyBRL(saved), 'R$ 167,10');
 });
 
 test('getNextCarouselIndex wraps around forward and backward across 5 WhatsApp chats', () => {
@@ -50,19 +51,31 @@ test('validateCheckoutInput rejects empty or invalid email and accepts valid inp
   assert.equal(validateCheckoutInput({ name: 'Ana Silva', email: 'ana@email.com' }).valid, true);
 });
 
-test('catalog contains 6 pain points, 7 solution materials, 6 product demos, 5 WhatsApp demo chats, 6 bonuses, and 6 FAQs', () => {
+test('catalog contains 6 pain points, 7 solution materials, 6 product demos (01-06), 4 support highlights, 6 bonuses, and 7 FAQs', () => {
   assert.equal(PAIN_POINTS.length, 6);
   assert.equal(SOLUTION_MATERIALS.length, 7);
   assert.equal(PRODUCT_DEMO_ITEMS.length, 6);
+  assert.deepEqual(
+    PRODUCT_DEMO_ITEMS.map((item) => item.number),
+    ['01', '02', '03', '04', '05', '06']
+  );
+  assert.equal(SUPPORT_HIGHLIGHTS.length, 4);
   assert.equal(WHATSAPP_DEMO_CHATS.length, 5);
   assert.equal(BONUS_ITEMS.length, 6);
+  for (const bonus of BONUS_ITEMS) {
+    assert.equal(bonus.originalPrice, undefined);
+  }
   assert.equal(INCLUDED_CHECKLIST.length, 7);
   assert.equal(KIT_OPTIONS.premium.bonuses?.length, 6);
-  assert.equal(FAQ_ITEMS.length, 6);
+  assert.equal(FAQ_ITEMS.length, 7);
+  assert.equal(
+    FAQ_ITEMS.some((f) => f.id === 'suporte-humanizado'),
+    true
+  );
   assert.equal(KIT_OPTIONS.basico.price, 'R$ 9,90');
-  assert.equal(KIT_OPTIONS.premium.price, 'R$ 23,90');
+  assert.equal(KIT_OPTIONS.premium.price, 'R$ 29,90');
   assert.equal(KIT_OPTIONS.basico.subtitle, '50 MATERIAIS DE ORGANIZAÇÃO');
-  assert.equal(KIT_OPTIONS.premium.subtitle, '100 MATERIAIS DE ORGANIZAÇÃO');
+  assert.equal(KIT_OPTIONS.premium.subtitle, '150 MATERIAIS DE ORGANIZAÇÃO');
   assert.equal(KIT_OPTIONS.premium.badge, 'MAIS COMPLETO');
   assert.equal(KIT_OPTIONS.basico.checkoutUrl, 'https://pay.cakto.com.br/85z54d3_1324900');
   assert.equal(KIT_OPTIONS.premium.checkoutUrl, 'https://pay.cakto.com.br/n8msmyw');

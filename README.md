@@ -1,6 +1,6 @@
 # Coleção Planner 2027 — Página de Vendas Oficial
 
-Página de vendas de alta conversão (Mobile-First) da **Coleção Planner 2027**, desenvolvida para apresentação comercial e venda dos pacotes **Kit Básico (R$ 9,90 — 50 materiais)** e **Kit Premium (R$ 23,90 — 100 materiais + 6 bônus exclusivos)** com checkout integrado à **Cakto** e rastreamento **UTMify**.
+Página de vendas de alta conversão (Mobile-First) da **Coleção Planner 2027**, desenvolvida para apresentação comercial e venda dos pacotes **Kit Básico (R$ 9,90 — 50 materiais)** e **Kit Premium (R$ 29,90 — 150 materiais + 6 bônus complementares + suporte humanizado)** com checkout integrado à **Cakto** e rastreamento **UTMify**.
 
 ---
 
@@ -77,7 +77,7 @@ Esta página de vendas **não exige nenhuma variável de ambiente para funcionar
 - O domínio canônico (`<link rel="canonical">` e `og:url`) é detectado **automaticamente** em tempo de execução através do navegador (`window.location.origin`), adaptando-se sozinho ao endereço gerado pela Vercel ou ao seu domínio próprio.
 - Os links de pagamento da **Cakto** já estão configurados diretamente em `src/utils/catalogData.ts`:
   - **Kit Básico (R$ 9,90)**: `https://pay.cakto.com.br/85z54d3_1324900`
-  - **Kit Premium (R$ 23,90)**: `https://pay.cakto.com.br/n8msmyw`
+  - **Kit Premium (R$ 29,90)**: `https://pay.cakto.com.br/n8msmyw`
 - Os scripts da **UTMify** (UTMs + Pixel `6af92e485fc5fd7c2f66ef1f`) já estão configurados no `<head>` do arquivo `index.html`.
 - Caso deseje fixar manualmente um domínio definitivo após a publicação, a variável opcional `VITE_APP_URL` já está preparada e comentada no `.env.example`.
 

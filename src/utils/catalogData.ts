@@ -20,6 +20,7 @@ export interface SolutionMaterialItem {
 
 export interface ProductDemoItem {
   id: string;
+  number: string;
   name: string;
   explanation: string;
   benefit: string;
@@ -254,6 +255,7 @@ export const SOLUTION_MATERIALS: SolutionMaterialItem[] = [
 export const PRODUCT_DEMO_ITEMS: ProductDemoItem[] = [
   {
     id: 'demo-semanal',
+    number: '01',
     name: 'PLANNER SEMANAL',
     explanation: 'Organize suas atividades e compromissos ao longo da semana.',
     benefit: 'Benefício: visualize prioridades de segunda a domingo e comece a semana com clareza.',
@@ -261,6 +263,7 @@ export const PRODUCT_DEMO_ITEMS: ProductDemoItem[] = [
   },
   {
     id: 'demo-habitos',
+    number: '02',
     name: 'CONTROLE DE HÁBITOS',
     explanation: 'Acompanhe seus hábitos e visualize sua consistência.',
     benefit: 'Benefício: mantenha o foco diário em rotina saudável, estudos, leitura e autocuidado.',
@@ -268,6 +271,7 @@ export const PRODUCT_DEMO_ITEMS: ProductDemoItem[] = [
   },
   {
     id: 'demo-tarefas',
+    number: '03',
     name: 'LISTA DE TAREFAS',
     explanation: 'Registre suas atividades e mantenha suas prioridades visíveis.',
     benefit: 'Benefício: tire as pendências da cabeça e acompanhe cada etapa concluída.',
@@ -275,6 +279,7 @@ export const PRODUCT_DEMO_ITEMS: ProductDemoItem[] = [
   },
   {
     id: 'demo-mensal',
+    number: '04',
     name: 'PLANEJAMENTO MENSAL',
     explanation: 'Visualize seus compromissos e organize seu mês.',
     benefit: 'Benefício: antecipe datas importantes, prazos e eventos em uma única página.',
@@ -282,6 +287,7 @@ export const PRODUCT_DEMO_ITEMS: ProductDemoItem[] = [
   },
   {
     id: 'demo-financeiro',
+    number: '05',
     name: 'CONTROLE FINANCEIRO',
     explanation: 'Registre receitas e despesas para acompanhar melhor suas finanças.',
     benefit: 'Benefício: saiba exatamente para onde vai seu dinheiro e planeje seus gastos.',
@@ -289,6 +295,7 @@ export const PRODUCT_DEMO_ITEMS: ProductDemoItem[] = [
   },
   {
     id: 'demo-metas',
+    number: '06',
     name: 'PLANEJAMENTO DE METAS',
     explanation: 'Defina seus objetivos de 2027 e acompanhe seus próximos passos.',
     benefit: 'Benefício: transforme planos anuais em metas práticas e possíveis de realizar.',
@@ -511,8 +518,7 @@ export const BONUS_ITEMS: BonusItem[] = [
     number: '01',
     title: 'GUIA DE ORGANIZAÇÃO E PRODUTIVIDADE',
     benefitTag: 'BÔNUS PREMIUM',
-    description: 'Material complementar com orientações para organizar a rotina.',
-    originalPrice: 'R$ 17,90',
+    description: 'Material complementar com orientações para organizar sua rotina.',
     image: '/assets/planners/bonus-organizacao.webp',
   },
   {
@@ -520,15 +526,13 @@ export const BONUS_ITEMS: BonusItem[] = [
     title: 'CONTROLE FINANCEIRO PESSOAL',
     benefitTag: 'BÔNUS PREMIUM',
     description: 'Ferramenta para registrar e acompanhar receitas e despesas.',
-    originalPrice: 'R$ 14,90',
     image: '/assets/planners/bonus-financeiro.webp',
   },
   {
     number: '03',
     title: 'PLANNER FINANCEIRO MENSAL',
     benefitTag: 'BÔNUS PREMIUM',
-    description: 'Material para organizar o planejamento financeiro mensal.',
-    originalPrice: 'R$ 24,90',
+    description: 'Material para organizar seu planejamento financeiro mensal.',
     image: '/assets/planners/bonus-planner.webp',
   },
   {
@@ -536,7 +540,6 @@ export const BONUS_ITEMS: BonusItem[] = [
     title: 'PACK DE LISTAS E ORGANIZADORES EXTRAS',
     benefitTag: 'BÔNUS PREMIUM',
     description: 'Modelos adicionais para organizar atividades e tarefas.',
-    originalPrice: 'R$ 19,90',
     image: '/assets/planners/bonus-listas.webp',
   },
   {
@@ -553,6 +556,13 @@ export const BONUS_ITEMS: BonusItem[] = [
     description: 'Acesso às atualizações da coleção conforme as condições reais de entrega da oferta.',
     image: '/assets/planners/planner-capa.webp',
   },
+];
+
+export const SUPPORT_HIGHLIGHTS: string[] = [
+  'Ajuda com o acesso aos arquivos.',
+  'Orientação para baixar os materiais.',
+  'Ajuda com dúvidas sobre a utilização.',
+  'Atendimento humanizado.',
 ];
 
 export const KIT_OPTIONS: Record<'basico' | 'premium', KitOption> = {
@@ -580,21 +590,22 @@ export const KIT_OPTIONS: Record<'basico' | 'premium', KitOption> = {
   premium: {
     id: 'premium',
     name: 'KIT PREMIUM',
-    subtitle: '100 MATERIAIS DE ORGANIZAÇÃO',
+    subtitle: '150 MATERIAIS DE ORGANIZAÇÃO',
     badge: 'MAIS COMPLETO',
-    idealFor: 'A coleção completa para organizar sua rotina, suas metas e também suas finanças durante 2027.',
-    oldPrice: 'R$ 197',
-    price: 'R$ 23,90',
-    priceNumeric: 23.9,
-    savingsText: 'Valor economizado: R$ 173,10.',
-    paymentNote: 'Pagamento único • Sem mensalidades',
+    idealFor:
+      'A coleção mais completa para organizar sua rotina, acompanhar suas metas e cuidar melhor das suas finanças durante 2027.',
+    price: 'R$ 29,90',
+    priceNumeric: 29.9,
+    paymentNote: 'Pagamento único • Sem mensalidades • Acesso digital • Garantia de 7 dias.',
     highlightFeature: 'Tudo do Kit Básico.',
     includedFeatures: [
-      '100 materiais digitais.',
+      '150 materiais digitais.',
       'Maior variedade de capas e layouts.',
       'Mais opções de planejamento.',
       'Materiais de organização pessoal.',
-      'Todos os bônus descritos anteriormente.',
+      '6 bônus complementares.',
+      'Suporte humanizado.',
+      'Atualizações incluídas conforme as condições da oferta.',
       'Acesso após confirmação do pagamento.',
       'Garantia de 7 dias.',
     ],
@@ -622,30 +633,37 @@ export const FAQ_ITEMS: FaqItem[] = [
     id: 'maquina-corte',
     question: 'Preciso de máquina de corte?',
     answer:
-      'Não. Os materiais podem ser impressos em impressora comum, respeitando o formato de cada arquivo.',
+      'Não. Os arquivos A4 comuns podem ser impressos em uma impressora convencional ou em gráfica, sem exigir máquina de corte.',
   },
   {
     id: 'imprimir-mais-de-uma-vez',
     question: 'Posso imprimir mais de uma vez?',
     answer:
-      'Sim, conforme as condições de uso dos arquivos adquiridos.',
+      'Sim, para uso pessoal, conforme a licença de uso e os Termos de Uso disponíveis no rodapé desta página.',
   },
   {
     id: 'mensalidade',
     question: 'Preciso pagar mensalidade?',
     answer:
-      'Não. É um pagamento único.',
+      'Não. A oferta possui pagamento único, sem mensalidades.',
   },
   {
     id: 'diferenca-kits',
     question: 'Qual a diferença entre os kits?',
     answer:
-      'O Básico oferece a coleção essencial. O Premium oferece uma coleção mais completa e materiais bônus.',
+      'O Kit Básico possui 50 materiais digitais para ajudar você a organizar sua rotina. O Kit Premium oferece 150 materiais digitais, seis bônus complementares e suporte humanizado.',
+  },
+  {
+    id: 'suporte-humanizado',
+    question: 'O Kit Premium possui suporte humanizado?',
+    answer:
+      'Sim! Quem escolhe o Kit Premium conta com suporte humanizado para tirar dúvidas relacionadas ao acesso, download e utilização dos materiais, conforme os canais e horários de atendimento disponibilizados.',
   },
   {
     id: 'como-funciona-garantia',
     question: 'Como funciona a garantia?',
     answer:
-      'O comprador tem 7 dias para solicitar o reembolso conforme as condições informadas na oferta.',
+      'O cliente possui 7 dias de garantia, conforme as condições informadas na política de garantia e nos Termos de Uso.',
   },
 ];
+
