@@ -39,6 +39,7 @@ import {
 import { CheckoutModal } from './components/CheckoutModal';
 import { LegalModal, LegalModalType } from './components/LegalModal';
 import { WhatsAppCarousel } from './components/WhatsAppCarousel';
+import { Analytics } from '@vercel/analytics/react';
 
 const MATERIAL_ICONS: Record<string, React.ReactNode> = {
   'demo-semanal': <Calendar className="w-4 h-4 text-[#c22182]" />,
@@ -1023,6 +1024,7 @@ export default function App() {
         activeModal={activeLegalModal}
         onClose={() => setActiveLegalModal(null)}
       />
+      <Analytics />
     </div>
   );
 }
