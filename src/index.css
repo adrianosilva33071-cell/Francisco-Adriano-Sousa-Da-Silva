@@ -8,8 +8,8 @@
 html {
   scroll-behavior: smooth;
   font-family: "Poppins", system-ui, -apple-system, sans-serif;
-  color: #2a212f;
-  background-color: #fef8fc;
+  color: #29202A;
+  background-color: #FFF6FA;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -42,7 +42,7 @@ button {
 
 @media (min-width: 768px) {
   .footer-safe-space {
-    padding-bottom: 2rem;
+    padding-bottom: 2.25rem;
   }
 }
 
@@ -98,7 +98,7 @@ button {
 
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid #c22182;
+  outline: 2px solid #F01579;
   outline-offset: 2px;
 }
 

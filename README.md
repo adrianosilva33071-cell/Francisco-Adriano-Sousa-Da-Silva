@@ -76,8 +76,9 @@ Esta página de vendas **não exige nenhuma variável de ambiente para funcionar
 
 - O domínio canônico (`<link rel="canonical">` e `og:url`) é detectado **automaticamente** em tempo de execução através do navegador (`window.location.origin`), adaptando-se sozinho ao endereço gerado pela Vercel ou ao seu domínio próprio.
 - Os links de pagamento da **Cakto** já estão configurados diretamente em `src/utils/catalogData.ts`:
-  - **Kit Básico (R$ 9,90)**: `https://pay.cakto.com.br/85z54d3_1324900`
-  - **Kit Premium (R$ 29,90)**: `https://pay.cakto.com.br/n8msmyw`
+  - **Kit Básico (R$ 9,90 — 100 materiais digitais)**: `https://pay.cakto.com.br/85z54d3_1324900`
+  - **Kit Premium — Compra Direta (R$ 29,90 — 250 materiais digitais)**: `https://pay.cakto.com.br/n8msmyw`
+  - **Kit Premium — Upgrade Exclusivo pelo Popup (R$ 19,90 — 250 materiais digitais)**: `https://pay.cakto.com.br/xhx8yqu`
 - Os scripts da **UTMify** (UTMs + Pixel `6af92e485fc5fd7c2f66ef1f`) já estão configurados no `<head>` do arquivo `index.html`.
 - Caso deseje fixar manualmente um domínio definitivo após a publicação, a variável opcional `VITE_APP_URL` já está preparada e comentada no `.env.example`.
 

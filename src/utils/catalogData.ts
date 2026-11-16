@@ -9,6 +9,7 @@ export interface CarouselModel {
 
 export interface PainPointItem {
   id: string;
+  number: string;
   text: string;
 }
 
@@ -23,6 +24,7 @@ export interface ProductDemoItem {
 
 export interface StepItem {
   step: number;
+  code: string;
   title: string;
   description: string;
   image: string;
@@ -39,14 +41,30 @@ export interface BonusItem {
 
 export interface FaqItem {
   id: string;
+  number: string;
   question: string;
   answer: string;
+}
+
+export interface HeroMockupPreview {
+  id: string;
+  label: string;
+  image: string;
+}
+
+export interface PlanComparisonRow {
+  feature: string;
+  basico: string;
+  premium: string;
+  highlightPremium?: boolean;
 }
 
 export interface KitOption {
   id: 'basico' | 'premium';
   name: string;
-  subtitle?: string;
+  titleCard?: string;
+  subtitle: string;
+  materialsCount: number;
   idealFor: string;
   badge?: string;
   oldPrice?: string;
@@ -62,35 +80,189 @@ export interface KitOption {
   checkoutUrl: string;
 }
 
+/**
+ * Endereços reais de checkout configurados na operação (Cakto):
+ * 1. Kit Básico (R$ 9,90 — 100 materiais digitais): https://pay.cakto.com.br/85z54d3_1324900
+ * 2. Compra direta do Kit Premium (R$ 29,90 — 250 materiais digitais): https://pay.cakto.com.br/n8msmyw
+ * 3. Upgrade exclusivo pelo popup para o Kit Premium (R$ 19,90 — 250 materiais digitais): https://pay.cakto.com.br/xhx8yqu
+ */
 export const CAKTO_BASICO_URL = 'https://pay.cakto.com.br/85z54d3_1324900';
 export const CAKTO_PREMIUM_URL = 'https://pay.cakto.com.br/n8msmyw';
-/**
- * Link específico do checkout promocional do Kit Premium por R$ 19,90 (Upsell).
- */
 export const CAKTO_PREMIUM_UPSELL_URL = 'https://pay.cakto.com.br/xhx8yqu';
+
+export const TRACKING_PARAM_KEYS = [
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_term',
+  'utm_content',
+  'utm_id',
+  'fbclid',
+  'gclid',
+  'ttclid',
+  'xcod',
+  'sck',
+  'src',
+  'subid',
+] as const;
+
+/**
+ * Preserva parâmetros UTM e de campanha (Meta Ads / UTMify) da URL atual no link de checkout,
+ * sem sobrescrever parâmetros que a UTMify já tenha anexado.
+ */
+export function buildCheckoutUrlWithTracking(baseUrl: string, searchString: string = ''): string {
+  const trimmedBase = baseUrl.trim();
+  if (!trimmedBase) return '';
+  if (!searchString || !searchString.trim()) return trimmedBase;
+
+  try {
+    const url = new URL(trimmedBase);
+    const incomingParams = new URLSearchParams(
+      searchString.startsWith('?') ? searchString.slice(1) : searchString
+    );
+
+    incomingParams.forEach((value, key) => {
+      const cleanVal = value.trim();
+      if (!cleanVal) return;
+      const lowerKey = key.toLowerCase();
+      const isTrackingParam =
+        lowerKey.startsWith('utm_') ||
+        (TRACKING_PARAM_KEYS as readonly string[]).includes(lowerKey);
+      if (isTrackingParam && !url.searchParams.has(key)) {
+        url.searchParams.set(key, cleanVal);
+      }
+    });
+
+    return url.toString();
+  } catch {
+    return trimmedBase;
+  }
+}
+
+export type FunnelTrackingEventName =
+  | 'ViewContent'
+  | 'ClickBasicButton'
+  | 'UpgradePopupShown'
+  | 'UpgradeAccepted'
+  | 'UpgradeDeclined'
+  | 'ClickPremiumButton'
+  | 'InitiateCheckout';
+
+/**
+ * Gera um event_id determinístico/único para deduplicação entre Meta Pixel e Conversions API (CAPI).
+ */
+export function createTrackingEventId(
+  eventName: FunnelTrackingEventName,
+  seed: number = Date.now()
+): string {
+  const normalized = eventName.toLowerCase();
+  return `planner2027_${normalized}_${seed}`;
+}
+
+export interface FunnelTrackingRecord {
+  eventName: FunnelTrackingEventName;
+  eventID: string;
+  payload: Record<string, unknown>;
+  timestamp: number;
+}
+
+/**
+ * Registra separadamente cada etapa do funil no Meta Pixel (fbq) e em memória para auditoria/CAPI,
+ * sem jamais simular ou disparar Purchase no clique de botão.
+ */
+export function dispatchFunnelTrackingEvent(
+  eventName: FunnelTrackingEventName,
+  payload: Record<string, unknown> = {},
+  seed: number = Date.now()
+): FunnelTrackingRecord {
+  const eventID = createTrackingEventId(eventName, seed);
+  const record: FunnelTrackingRecord = {
+    eventName,
+    eventID,
+    payload: {
+      currency: 'BRL',
+      ...payload,
+    },
+    timestamp: seed,
+  };
+
+  if (typeof window !== 'undefined') {
+    const win = window as unknown as {
+      fbq?: (...args: unknown[]) => void;
+      __plannerFunnelEvents?: FunnelTrackingRecord[];
+    };
+
+    if (!Array.isArray(win.__plannerFunnelEvents)) {
+      win.__plannerFunnelEvents = [];
+    }
+    win.__plannerFunnelEvents.push(record);
+
+    try {
+      if (typeof win.fbq === 'function') {
+        const isStandardMetaEvent =
+          eventName === 'ViewContent' || eventName === 'InitiateCheckout';
+        win.fbq(
+          isStandardMetaEvent ? 'track' : 'trackCustom',
+          eventName,
+          record.payload,
+          { eventID }
+        );
+      }
+    } catch {
+      // Preserva funcionamento nativo mesmo se bloqueadores interceptarem o script
+    }
+  }
+
+  return record;
+}
 
 export interface UpsellModalContent {
   headline: string;
   subheadline: string;
-  productTitle: string;
-  originalPrice: string;
-  promotionalPrice: string;
-  promotionalPriceNumeric: number;
+  priceDifferenceCallout: string;
   highlightBadge: string;
+  basicComparison: {
+    name: string;
+    materialsLabel: string;
+    price: string;
+    priceNumeric: number;
+  };
+  premiumComparison: {
+    name: string;
+    materialsLabel: string;
+    normalPrice: string;
+    normalPriceNumeric: number;
+    price: string;
+    priceNumeric: number;
+    differenceBadge: string;
+  };
   acceptCtaLabel: string;
   declineCtaLabel: string;
 }
 
 export const UPSELL_MODAL_CONTENT: UpsellModalContent = {
-  headline: 'OFERTA EXCLUSIVA PARA VOCÊ!',
-  subheadline: 'Que tal levar a coleção completa?',
-  productTitle: 'KIT PREMIUM — PLANNER 2027',
-  originalPrice: 'R$ 29,90',
-  promotionalPrice: 'R$ 19,90',
-  promotionalPriceNumeric: 19.9,
-  highlightBadge: 'CONDIÇÃO ESPECIAL DISPONÍVEL NESTA OFERTA!',
-  acceptCtaLabel: 'SIM! QUERO MEU PREMIUM POR R$ 19,90',
-  declineCtaLabel: 'Não, obrigado. Quero continuar com o plano básico',
+  headline: 'ESPERE! TEMOS UMA OFERTA ESPECIAL PARA VOCÊ!',
+  subheadline: 'Por apenas R$ 19,90, leve o Kit Premium com 250 materiais digitais!',
+  priceDifferenceCallout:
+    '250 materiais digitais + 6 bônus exclusivos — R$ 29,90 normalmente, mas com oferta especial de R$ 19,90 no total pelo popup!',
+  highlightBadge: 'OFERTA ESPECIAL EXCLUSIVA DO POPUP • DE R$ 29,90 POR R$ 19,90',
+  basicComparison: {
+    name: 'BÁSICO',
+    materialsLabel: '100 materiais digitais',
+    price: 'R$ 9,90',
+    priceNumeric: 9.9,
+  },
+  premiumComparison: {
+    name: 'PREMIUM',
+    materialsLabel: '250 materiais digitais',
+    normalPrice: 'R$ 29,90',
+    normalPriceNumeric: 29.9,
+    price: 'R$ 19,90',
+    priceNumeric: 19.9,
+    differenceBadge: 'R$ 29,90 normalmente • R$ 19,90 pelo popup',
+  },
+  acceptCtaLabel: 'SIM! QUERO O PREMIUM POR R$ 19,90',
+  declineCtaLabel: 'NÃO, PREFIRO O BÁSICO POR R$ 9,90',
 };
 
 export function resolveUpsellAction(
@@ -106,34 +278,118 @@ export function resolveUpsellAction(
     return {
       status: 'redirect',
       targetUrl: CAKTO_BASICO_URL,
-      kitName: 'KIT BÁSICO',
+      kitName: 'KIT BÁSICO (100 MATERIAIS)',
       priceNumeric: 9.9,
     };
   }
 
   const trimmedUpsell = configuredUpsellUrl.trim();
-  // Never allow the R$ 29,90 checkout URL to masquerade as the R$ 19,90 upsell URL
-  if (!trimmedUpsell || trimmedUpsell === CAKTO_PREMIUM_URL) {
+  // Safeguard: nunca permitir URL vazia, nem o checkout do Básico (R$ 9,90), nem o checkout normal do Premium (R$ 29,90) no upgrade promocional de R$ 19,90
+  if (
+    !trimmedUpsell ||
+    trimmedUpsell === CAKTO_BASICO_URL ||
+    trimmedUpsell === CAKTO_PREMIUM_URL
+  ) {
     return {
       status: 'missing_upsell_url',
       targetUrl: null,
-      kitName: 'KIT PREMIUM (UPSELL R$ 19,90)',
-      priceNumeric: UPSELL_MODAL_CONTENT.promotionalPriceNumeric,
+      kitName: 'KIT PREMIUM (250 MATERIAIS — UPGRADE POPUP)',
+      priceNumeric: UPSELL_MODAL_CONTENT.premiumComparison.priceNumeric,
     };
   }
 
   return {
     status: 'redirect',
     targetUrl: trimmedUpsell,
-    kitName: 'KIT PREMIUM (UPSELL R$ 19,90)',
-    priceNumeric: UPSELL_MODAL_CONTENT.promotionalPriceNumeric,
+    kitName: 'KIT PREMIUM (250 MATERIAIS — UPGRADE POPUP)',
+    priceNumeric: UPSELL_MODAL_CONTENT.premiumComparison.priceNumeric,
   };
 }
 
 export const PROMO_DATE_TEXT = 'OFERTA EXCLUSIVA • POR TEMPO LIMITADO';
+export const HERO_BADGE_TEXT = 'COLEÇÃO DIGITAL • PLANNER 2027';
+export const HERO_HEADLINE = 'SEU 2027 MAIS ORGANIZADO COMEÇA AQUI!';
+export const HERO_SUBHEADLINE =
+  'Tenha ferramentas práticas para organizar sua rotina, acompanhar seus hábitos, planejar suas metas e cuidar melhor da sua vida financeira.';
 
 export const HERO_PLANNER_IMAGE = '/assets/planners/hero-planner.webp';
+export const LIFESTYLE_PLANNER_IMAGE = '/assets/planners/vitrine-uso-planner.webp';
 export const GUARANTEE_BADGE_IMAGE = '/assets/planners/selo-garantia.webp';
+
+export const HERO_QUICK_BENEFITS: string[] = [
+  'Opções com 100 ou 250 materiais digitais.',
+  'Pagamento único, sem mensalidades.',
+  'Acesso digital após confirmação.',
+  'Arquivos prontos para imprimir + Garantia de 7 dias.',
+];
+
+export const HERO_MOCKUP_PREVIEWS: HeroMockupPreview[] = [
+  {
+    id: 'capa-rosa',
+    label: 'Capa rosa do Planner 2027',
+    image: '/assets/planners/planner-capa.webp',
+  },
+  {
+    id: 'planner-semanal',
+    label: 'Planner semanal',
+    image: '/assets/planners/planejamento-semanal.webp',
+  },
+  {
+    id: 'controle-habitos',
+    label: 'Controle de hábitos',
+    image: '/assets/planners/controle-habitos.webp',
+  },
+  {
+    id: 'planejamento-mensal',
+    label: 'Planejamento mensal',
+    image: '/assets/planners/calendario-mensal.webp',
+  },
+  {
+    id: 'controle-financeiro',
+    label: 'Controle financeiro',
+    image: '/assets/planners/planejamento-financeiro.webp',
+  },
+  {
+    id: 'lista-tarefas',
+    label: 'Lista de tarefas',
+    image: '/assets/planners/lista-tarefas.webp',
+  },
+];
+
+export const PLAN_COMPARISON_ROWS: PlanComparisonRow[] = [
+  {
+    feature: 'Materiais digitais',
+    basico: '100',
+    premium: '250',
+    highlightPremium: true,
+  },
+  {
+    feature: 'Preço',
+    basico: 'R$ 9,90',
+    premium: 'R$ 29,90',
+    highlightPremium: true,
+  },
+  {
+    feature: 'Planejamento',
+    basico: 'Sim',
+    premium: 'Sim',
+  },
+  {
+    feature: 'Organização pessoal',
+    basico: 'Sim',
+    premium: 'Sim',
+  },
+  {
+    feature: 'Controle de hábitos',
+    basico: 'Sim',
+    premium: 'Sim',
+  },
+  {
+    feature: 'Planejamento financeiro',
+    basico: 'Conforme conteúdo incluído',
+    premium: 'Conforme conteúdo incluído',
+  },
+];
 
 export function toAvifUrl(webpPath: string): string {
   return webpPath.replace(/\.webp$/i, '.avif');
@@ -169,6 +425,11 @@ export function formatBrazilianDate(date: Date): string {
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
   const year = date.getUTCFullYear();
   return `${day}/${month}/${year}`;
+}
+
+export function calculatePriceDifference(premiumPrice: number, basicPrice: number): number {
+  if (premiumPrice <= basicPrice) return 0;
+  return Number((premiumPrice - basicPrice).toFixed(2));
 }
 
 export function calculateSavings(originalPrice: number, currentPrice: number): number {
@@ -220,26 +481,32 @@ export function ensureWritableWindowFetch(target: Record<string, unknown>): bool
 export const PAIN_POINTS: PainPointItem[] = [
   {
     id: 'semana-tarefas',
+    number: '01',
     text: 'Começa a semana com várias tarefas, mas não consegue organizar tudo.',
   },
   {
     id: 'esquece-compromissos',
+    number: '02',
     text: 'Esquece compromissos e atividades importantes.',
   },
   {
     id: 'metas-depois',
+    number: '03',
     text: 'Define metas, mas acaba deixando tudo para depois.',
   },
   {
     id: 'controlar-gastos',
+    number: '04',
     text: 'Quer controlar melhor os gastos, mas não sabe por onde começar.',
   },
   {
     id: 'falta-planejamento',
+    number: '05',
     text: 'Sente que precisa de mais planejamento no dia a dia.',
   },
   {
     id: 'acompanhar-habitos',
+    number: '06',
     text: 'Gostaria de acompanhar seus hábitos e sua evolução.',
   },
 ];
@@ -249,48 +516,48 @@ export const PRODUCT_DEMO_ITEMS: ProductDemoItem[] = [
     id: 'demo-semanal',
     number: '01',
     name: 'PLANNER SEMANAL',
-    explanation: 'Organize suas atividades e compromissos ao longo da semana.',
-    benefit: 'Benefício: visualize prioridades de segunda a domingo e comece a semana com clareza.',
+    explanation: 'Organize suas atividades e compromissos de segunda a domingo com clareza visual.',
+    benefit: 'Visualize prioridades de segunda a domingo e comece a semana organizada.',
     image: '/assets/planners/planejamento-semanal.webp',
   },
   {
-    id: 'demo-habitos',
+    id: 'demo-mensal',
     number: '02',
+    name: 'PLANEJAMENTO MENSAL',
+    explanation: 'Visualize todos os dias do mês em uma única página para antecipar prazos e datas.',
+    benefit: 'Antecipe datas importantes, compromissos e eventos do mês.',
+    image: '/assets/planners/calendario-mensal.webp',
+  },
+  {
+    id: 'demo-habitos',
+    number: '03',
     name: 'CONTROLE DE HÁBITOS',
-    explanation: 'Acompanhe seus hábitos e visualize sua consistência.',
-    benefit: 'Benefício: mantenha o foco diário em rotina saudável, estudos, leitura e autocuidado.',
+    explanation: 'Acompanhe seus hábitos diários e visualize sua evolução ao longo de cada semana.',
+    benefit: 'Mantenha o foco diário em rotina saudável, estudos, leitura e autocuidado.',
     image: '/assets/planners/controle-habitos.webp',
   },
   {
     id: 'demo-tarefas',
-    number: '03',
-    name: 'LISTA DE TAREFAS',
-    explanation: 'Registre suas atividades e mantenha suas prioridades visíveis.',
-    benefit: 'Benefício: tire as pendências da cabeça e acompanhe cada etapa concluída.',
-    image: '/assets/planners/lista-tarefas.webp',
-  },
-  {
-    id: 'demo-mensal',
     number: '04',
-    name: 'PLANEJAMENTO MENSAL',
-    explanation: 'Visualize seus compromissos e organize seu mês.',
-    benefit: 'Benefício: antecipe datas importantes, prazos e eventos em uma única página.',
-    image: '/assets/planners/calendario-mensal.webp',
+    name: 'LISTA DE TAREFAS',
+    explanation: 'Registre suas atividades em formato checklist e mantenha prioridades visíveis.',
+    benefit: 'Tire as pendências da cabeça e acompanhe cada etapa concluída.',
+    image: '/assets/planners/lista-tarefas.webp',
   },
   {
     id: 'demo-financeiro',
     number: '05',
     name: 'CONTROLE FINANCEIRO',
-    explanation: 'Registre receitas e despesas para acompanhar melhor suas finanças.',
-    benefit: 'Benefício: saiba exatamente para onde vai seu dinheiro e planeje seus gastos.',
+    explanation: 'Registre entradas do mês, despesas fixas/variáveis, saldo e meta de economia.',
+    benefit: 'Saiba exatamente para onde vai seu dinheiro e planeje melhor seus gastos.',
     image: '/assets/planners/planejamento-financeiro.webp',
   },
   {
     id: 'demo-metas',
     number: '06',
     name: 'PLANEJAMENTO DE METAS',
-    explanation: 'Defina seus objetivos de 2027 e acompanhe seus próximos passos.',
-    benefit: 'Benefício: transforme planos anuais em metas práticas e possíveis de realizar.',
+    explanation: 'Defina seus objetivos de 2027 e divida em próximos passos práticos.',
+    benefit: 'Transforme planos anuais em metas reais e possíveis de realizar.',
     image: '/assets/planners/metas.webp',
   },
 ];
@@ -348,7 +615,7 @@ export const CAROUSEL_MODELS: CarouselModel[] = [
     id: 7,
     title: 'Planejamento financeiro',
     useCaseTitle: 'Controle financeiro',
-    useCaseDescription: 'Registre receitas e despesas para acompanhar melhor suas finanças.',
+    useCaseDescription: 'Registre entradas, despesas, saldo do mês e meta de economia.',
     benefitText: 'Mais controle sobre seus gastos',
     image: '/assets/planners/planejamento-financeiro.webp',
   },
@@ -356,7 +623,7 @@ export const CAROUSEL_MODELS: CarouselModel[] = [
     id: 8,
     title: 'Organizador diário',
     useCaseTitle: 'Organização de compromissos',
-    useCaseDescription: 'Organize horários, prioridades do dia e anotações rápidas.',
+    useCaseDescription: 'Organize prioridades 1, 2 e 3, horários das 07h às 20h e tarefas do dia.',
     benefitText: 'Rotina diária mais estruturada',
     image: '/assets/planners/organizador-diario.webp',
   },
@@ -365,23 +632,25 @@ export const CAROUSEL_MODELS: CarouselModel[] = [
 export const STEP_ITEMS: StepItem[] = [
   {
     step: 1,
-    title: '1. Acesse seus arquivos digitais',
+    code: 'ETAPA 01',
+    title: 'ACESSE SEUS ARQUIVOS',
     description:
-      'Após a confirmação do pagamento, você recebe o acesso para baixar seus materiais no celular ou computador.',
+      'Depois da confirmação do pagamento, tenha acesso aos materiais digitais conforme o sistema de entrega configurado.',
     image: '/assets/planners/passo-download.webp',
   },
   {
     step: 2,
-    title: '2. Imprima em casa ou na gráfica',
-    description:
-      'Os modelos podem ser impressos em impressora comum, sem precisar de máquina de corte.',
+    code: 'ETAPA 02',
+    title: 'IMPRIMA SEUS MATERIAIS',
+    description: 'Utilize os arquivos conforme as orientações de impressão da coleção.',
     image: '/assets/planners/passo-impressao.webp',
   },
   {
     step: 3,
-    title: '3. Comece a organizar seu 2027',
+    code: 'ETAPA 03',
+    title: 'COMECE A ORGANIZAR SUA ROTINA',
     description:
-      'Utilize em pasta, fichário, prancheta ou encaderne como preferir para acompanhar sua rotina.',
+      'Utilize seus planners e organizadores para planejar atividades, acompanhar hábitos e registrar metas.',
     image: '/assets/planners/passo-utilizacao.webp',
   },
 ];
@@ -390,42 +659,42 @@ export const BONUS_ITEMS: BonusItem[] = [
   {
     number: '01',
     title: 'GUIA DE ORGANIZAÇÃO E PRODUTIVIDADE',
-    benefitTag: 'BÔNUS PREMIUM',
-    description: 'Material complementar com orientações para organizar sua rotina.',
+    benefitTag: 'BÔNUS 01 • KIT PREMIUM',
+    description: 'Material complementar com orientações práticas para organizar sua rotina.',
     image: '/assets/planners/bonus-organizacao.webp',
   },
   {
     number: '02',
     title: 'CONTROLE FINANCEIRO PESSOAL',
-    benefitTag: 'BÔNUS PREMIUM',
-    description: 'Ferramenta para registrar e acompanhar receitas e despesas.',
+    benefitTag: 'BÔNUS 02 • KIT PREMIUM',
+    description: 'Ferramenta dedicada para registrar e acompanhar receitas e despesas.',
     image: '/assets/planners/bonus-financeiro.webp',
   },
   {
     number: '03',
     title: 'PLANNER FINANCEIRO MENSAL',
-    benefitTag: 'BÔNUS PREMIUM',
-    description: 'Material para organizar seu planejamento financeiro mensal.',
+    benefitTag: 'BÔNUS 03 • KIT PREMIUM',
+    description: 'Material para estruturar seu planejamento financeiro mês a mês.',
     image: '/assets/planners/bonus-planner.webp',
   },
   {
     number: '04',
     title: 'PACK DE LISTAS E ORGANIZADORES EXTRAS',
-    benefitTag: 'BÔNUS PREMIUM',
-    description: 'Modelos adicionais para organizar atividades e tarefas.',
+    benefitTag: 'BÔNUS 04 • KIT PREMIUM',
+    description: 'Modelos adicionais de checklists para organizar atividades e tarefas.',
     image: '/assets/planners/bonus-listas.webp',
   },
   {
     number: '05',
     title: 'PLANNER DE METAS E OBJETIVOS',
-    benefitTag: 'BÔNUS PREMIUM',
-    description: 'Material complementar para registrar e acompanhar objetivos.',
+    benefitTag: 'BÔNUS 05 • KIT PREMIUM',
+    description: 'Material complementar para registrar e acompanhar objetivos de 2027.',
     image: '/assets/planners/metas.webp',
   },
   {
     number: '06',
     title: 'ATUALIZAÇÕES INCLUÍDAS',
-    benefitTag: 'BÔNUS PREMIUM',
+    benefitTag: 'BÔNUS 06 • KIT PREMIUM',
     description:
       'Acesso às atualizações da coleção conforme as condições reais de entrega da oferta.',
     image: '/assets/planners/planner-capa.webp',
@@ -443,56 +712,57 @@ export const KIT_OPTIONS: Record<'basico' | 'premium', KitOption> = {
   basico: {
     id: 'basico',
     name: 'KIT BÁSICO',
-    subtitle: '50 MATERIAIS DE ORGANIZAÇÃO',
-    idealFor: 'Tudo o que você precisa para começar a organizar sua rotina em 2027.',
+    titleCard: 'KIT BÁSICO — 100 MATERIAIS DIGITAIS',
+    subtitle: '100 materiais digitais.',
+    materialsCount: 100,
+    idealFor:
+      'Opção econômica para quem deseja começar a organizar sua rotina com 100 materiais digitais práticos.',
     price: 'R$ 9,90',
     priceNumeric: 9.9,
-    paymentNote: 'Pagamento único • Acesso após confirmação do pagamento',
+    paymentNote: 'Pagamento único • Sem mensalidade • Acesso digital • Garantia de 7 dias.',
     includedFeatures: [
-      'Planners semanais.',
-      'Calendários mensais.',
-      'Listas de tarefas.',
+      '100 materiais digitais.',
+      'Organização pessoal.',
+      'Planejamento da rotina.',
+      'Listas e tarefas.',
       'Controle de hábitos.',
-      'Planejamento de metas.',
-      'Arquivos digitais A4 prontos para imprimir.',
-      'Acesso após confirmação do pagamento.',
-      'Garantia de 7 dias.',
+      'Ferramentas de planejamento.',
     ],
-    ctaLabel: 'QUERO O KIT BÁSICO',
+    ctaLabel: 'QUERO MEU KIT BÁSICO',
     checkoutUrl: CAKTO_BASICO_URL,
   },
   premium: {
     id: 'premium',
     name: 'KIT PREMIUM',
-    subtitle: '150 MATERIAIS DE ORGANIZAÇÃO',
+    titleCard: 'KIT PREMIUM — 250 MATERIAIS DIGITAIS + 6 BÔNUS',
+    subtitle: '250 materiais digitais.',
+    materialsCount: 250,
     badge: 'MAIS COMPLETO',
     idealFor:
-      'A coleção mais completa para organizar sua rotina, acompanhar suas metas e cuidar melhor das suas finanças durante 2027.',
-    oldPrice: 'R$ 59,90',
+      'A coleção mais completa: 250 materiais digitais + 6 bônus incluídos para organizar sua rotina, objetivos, hábitos e vida financeira.',
     price: 'R$ 29,90',
     priceNumeric: 29.9,
-    paymentNote: 'Pagamento único • Sem mensalidades • Acesso digital • Garantia de 7 dias.',
-    highlightFeature: 'Tudo do Kit Básico.',
+    paymentNote: 'Pagamento único • Sem mensalidade • Acesso digital • Garantia de 7 dias.',
     includedFeatures: [
-      '150 materiais digitais.',
-      'Maior variedade de capas e layouts.',
-      'Mais opções de planejamento.',
-      'Materiais de organização pessoal.',
-      '6 bônus complementares.',
-      'Suporte humanizado.',
-      'Atualizações incluídas conforme as condições da oferta.',
-      'Acesso após confirmação do pagamento.',
-      'Garantia de 7 dias.',
+      '250 materiais digitais.',
+      '6 bônus complementares incluídos.',
+      'Mais ferramentas de planejamento.',
+      'Organização pessoal.',
+      'Controle de hábitos.',
+      'Planejamento mensal e semanal.',
+      'Controle financeiro.',
+      'Planejamento de metas.',
+      'Materiais complementares.',
     ],
     bonuses: [
-      'Guia de Organização e Produtividade.',
-      'Controle Financeiro Pessoal.',
-      'Planner Financeiro Mensal.',
-      'Pack de Listas e Organizadores Extras.',
-      'Planner de Metas e Objetivos.',
-      'Atualizações incluídas.',
+      'Bônus 01: Guia de Organização e Produtividade',
+      'Bônus 02: Controle Financeiro Pessoal',
+      'Bônus 03: Planner Financeiro Mensal',
+      'Bônus 04: Pack de Listas e Organizadores Extras',
+      'Bônus 05: Planner de Metas e Objetivos',
+      'Bônus 06: Atualizações Incluídas',
     ],
-    ctaLabel: 'SIM, QUERO MEU KIT PREMIUM',
+    ctaLabel: 'QUERO MEU KIT PREMIUM',
     checkoutUrl: CAKTO_PREMIUM_URL,
   },
 };
@@ -500,43 +770,50 @@ export const KIT_OPTIONS: Record<'basico' | 'premium', KitOption> = {
 export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'como-recebo',
+    number: '01',
     question: 'Como recebo os materiais?',
     answer:
       'Os materiais são digitais e o acesso ocorre após a confirmação do pagamento, conforme o sistema de entrega configurado.',
   },
   {
     id: 'maquina-corte',
-    question: 'Preciso de máquina de corte?',
+    number: '02',
+    question: 'Preciso de máquina de corte para imprimir?',
     answer:
-      'Não. Os arquivos A4 comuns podem ser impressos em uma impressora convencional ou em gráfica, sem exigir máquina de corte.',
+      'Não. Os materiais da coleção são disponibilizados em formato digital A4, prontos para imprimir em impressora doméstica comum ou em gráfica rápida, sem exigir máquina de corte.',
   },
   {
     id: 'imprimir-mais-de-uma-vez',
+    number: '03',
     question: 'Posso imprimir mais de uma vez?',
     answer:
-      'Sim, para uso pessoal, conforme a licença de uso e os Termos de Uso disponíveis no rodapé desta página.',
+      'Sim. Ao adquirir a coleção, você recebe uma licença de uso pessoal para baixar e imprimir seus materiais quantas vezes desejar, conforme previsto nos Termos de Uso disponíveis no rodapé desta página.',
   },
   {
     id: 'mensalidade',
+    number: '04',
     question: 'Preciso pagar mensalidade?',
-    answer: 'Não. A oferta possui pagamento único, sem mensalidades.',
+    answer: 'Não. O pagamento tanto do Kit Básico quanto do Kit Premium é único, sem mensalidades.',
   },
   {
     id: 'diferenca-kits',
-    question: 'Qual a diferença entre os kits?',
+    number: '05',
+    question: 'Qual a diferença entre o Kit Básico e o Kit Premium?',
     answer:
-      'O Kit Básico possui 50 materiais digitais para ajudar você a organizar sua rotina. O Kit Premium oferece 150 materiais digitais, seis bônus complementares e suporte humanizado.',
+      'O Kit Básico (R$ 9,90) oferece 100 materiais digitais essenciais para planejamento e organização pessoal. O Kit Premium (R$ 29,90) é a opção mais completa, com 250 materiais digitais, incluindo mais ferramentas de planejamento semanal e mensal, controle financeiro, planejamento de metas e materiais complementares.',
   },
   {
     id: 'suporte-humanizado',
-    question: 'O Kit Premium possui suporte humanizado?',
+    number: '06',
+    question: 'Como funciona o suporte?',
     answer:
-      'Sim! Quem escolhe o Kit Premium conta com suporte humanizado para tirar dúvidas relacionadas ao acesso, download e utilização dos materiais, conforme os canais e horários de atendimento disponibilizados.',
+      'Você conta com suporte humanizado pelos canais oficiais da operação (suporte@planners2027.com.br, de segunda a sexta, das 09h às 18h) para tirar dúvidas sobre acesso, download e utilização dos materiais.',
   },
   {
     id: 'como-funciona-garantia',
-    question: 'Como funciona a garantia?',
+    number: '07',
+    question: 'Como funciona a garantia de 7 dias?',
     answer:
-      'O cliente possui 7 dias de garantia, conforme as condições informadas na política de garantia e nos Termos de Uso.',
+      'Você possui 7 dias de garantia após a compra para conhecer o material e, caso necessário, solicitar o reembolso conforme as condições da garantia.',
   },
 ];

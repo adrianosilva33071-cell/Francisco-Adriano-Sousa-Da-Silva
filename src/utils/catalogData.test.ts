@@ -4,11 +4,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   formatBrazilianDate,
+  calculatePriceDifference,
   calculateSavings,
   formatCurrencyBRL,
   getNextCarouselIndex,
   ensureWritableWindowFetch,
+  buildCheckoutUrlWithTracking,
+  createTrackingEventId,
+  dispatchFunnelTrackingEvent,
   HERO_PLANNER_IMAGE,
+  HERO_BADGE_TEXT,
+  HERO_HEADLINE,
+  HERO_SUBHEADLINE,
+  HERO_QUICK_BENEFITS,
+  HERO_MOCKUP_PREVIEWS,
+  PLAN_COMPARISON_ROWS,
   PROMO_DATE_TEXT,
   GUARANTEE_BADGE_IMAGE,
   PAIN_POINTS,
@@ -33,10 +43,26 @@ test('formatBrazilianDate formats 2026-11-14 as 14/11/2026', () => {
   assert.equal(formatBrazilianDate(d), '14/11/2026');
 });
 
-test('calculateSavings computes exact difference for Kit Premium De R$ 59,90 por R$ 29,90', () => {
-  const saved = calculateSavings(59.9, KIT_OPTIONS.premium.priceNumeric);
-  assert.equal(saved, 30);
-  assert.equal(formatCurrencyBRL(saved), 'R$ 30,00');
+test('calculatePriceDifference computes exact R$ 10,00 popup difference (R$ 19,90 vs R$ 9,90) and R$ 20,00 direct difference (R$ 29,90 vs R$ 9,90)', () => {
+  const popupDiff = calculatePriceDifference(
+    UPSELL_MODAL_CONTENT.premiumComparison.priceNumeric,
+    KIT_OPTIONS.basico.priceNumeric
+  );
+  assert.equal(popupDiff, 10);
+  assert.equal(formatCurrencyBRL(popupDiff), 'R$ 10,00');
+
+  const directDiff = calculatePriceDifference(
+    KIT_OPTIONS.premium.priceNumeric,
+    KIT_OPTIONS.basico.priceNumeric
+  );
+  assert.equal(directDiff, 20);
+  assert.equal(
+    calculateSavings(
+      KIT_OPTIONS.premium.priceNumeric,
+      UPSELL_MODAL_CONTENT.premiumComparison.priceNumeric
+    ),
+    10
+  );
 });
 
 test('getNextCarouselIndex wraps around forward and backward across 8 planner models', () => {
@@ -44,6 +70,77 @@ test('getNextCarouselIndex wraps around forward and backward across 8 planner mo
   assert.equal(getNextCarouselIndex(7, 8, 'next'), 0);
   assert.equal(getNextCarouselIndex(0, 8, 'prev'), 7);
   assert.equal(getNextCarouselIndex(2, 8, 'prev'), 1);
+});
+
+test('buildCheckoutUrlWithTracking preserves Meta Ads & UTMify query parameters on all 3 checkout links', () => {
+  assert.equal(buildCheckoutUrlWithTracking(CAKTO_PREMIUM_URL, ''), 'https://pay.cakto.com.br/n8msmyw');
+  assert.equal(buildCheckoutUrlWithTracking(CAKTO_PREMIUM_UPSELL_URL, ''), 'https://pay.cakto.com.br/xhx8yqu');
+  assert.equal(buildCheckoutUrlWithTracking(CAKTO_BASICO_URL, ''), 'https://pay.cakto.com.br/85z54d3_1324900');
+
+  const trackedDirectPremium = buildCheckoutUrlWithTracking(
+    CAKTO_PREMIUM_URL,
+    '?utm_source=FB&utm_medium=ads&utm_campaign=planner2027&fbclid=IwAR12345&xcod=xc99&ignored_param=xyz'
+  );
+  assert.equal(
+    trackedDirectPremium,
+    'https://pay.cakto.com.br/n8msmyw?utm_source=FB&utm_medium=ads&utm_campaign=planner2027&fbclid=IwAR12345&xcod=xc99'
+  );
+
+  const trackedPopupUpsell = buildCheckoutUrlWithTracking(
+    CAKTO_PREMIUM_UPSELL_URL,
+    '?utm_source=FB&utm_campaign=upsell1990'
+  );
+  assert.equal(
+    trackedPopupUpsell,
+    'https://pay.cakto.com.br/xhx8yqu?utm_source=FB&utm_campaign=upsell1990'
+  );
+
+  const preDecorated = 'https://pay.cakto.com.br/xhx8yqu?utm_source=utmify_existing';
+  const merged = buildCheckoutUrlWithTracking(
+    preDecorated,
+    '?utm_source=FB_new&utm_campaign=camp1'
+  );
+  assert.equal(
+    merged,
+    'https://pay.cakto.com.br/xhx8yqu?utm_source=utmify_existing&utm_campaign=camp1'
+  );
+});
+
+test('createTrackingEventId and dispatchFunnelTrackingEvent generate distinct funnel tracking records', () => {
+  assert.equal(
+    createTrackingEventId('ViewContent', 1700000000),
+    'planner2027_viewcontent_1700000000'
+  );
+  assert.equal(
+    createTrackingEventId('ClickBasicButton', 1700000001),
+    'planner2027_clickbasicbutton_1700000001'
+  );
+  assert.equal(
+    createTrackingEventId('UpgradePopupShown', 1700000002),
+    'planner2027_upgradepopupshown_1700000002'
+  );
+  assert.equal(
+    createTrackingEventId('UpgradeAccepted', 1700000003),
+    'planner2027_upgradeaccepted_1700000003'
+  );
+  assert.equal(
+    createTrackingEventId('UpgradeDeclined', 1700000004),
+    'planner2027_upgradedeclined_1700000004'
+  );
+  assert.equal(
+    createTrackingEventId('ClickPremiumButton', 1700000005),
+    'planner2027_clickpremiumbutton_1700000005'
+  );
+
+  const record = dispatchFunnelTrackingEvent(
+    'UpgradeAccepted',
+    { value: 19.9, content_name: 'KIT PREMIUM' },
+    1700000099
+  );
+  assert.equal(record.eventName, 'UpgradeAccepted');
+  assert.equal(record.eventID, 'planner2027_upgradeaccepted_1700000099');
+  assert.equal(record.payload.value, 19.9);
+  assert.equal(record.payload.currency, 'BRL');
 });
 
 test('toAvifUrl and getResponsiveImageSources generate valid AVIF and WebP srcSets', () => {
@@ -66,43 +163,71 @@ test('toAvifUrl and getResponsiveImageSources generate valid AVIF and WebP srcSe
   );
 });
 
-test('catalog contains 6 pain points, 6 product demos (01-06), 4 support highlights, 6 bonuses, and 7 FAQs', () => {
+test('catalog enforces the 3 pricing rules: Kit Básico (R$ 9,90), Direct Kit Premium (R$ 29,90), and Popup Upgrade (R$ 19,90)', () => {
+  assert.equal(HERO_BADGE_TEXT, 'COLEÇÃO DIGITAL • PLANNER 2027');
+  assert.equal(HERO_HEADLINE, 'SEU 2027 MAIS ORGANIZADO COMEÇA AQUI!');
+  assert.equal(
+    HERO_SUBHEADLINE,
+    'Tenha ferramentas práticas para organizar sua rotina, acompanhar seus hábitos, planejar suas metas e cuidar melhor da sua vida financeira.'
+  );
+  assert.equal(HERO_QUICK_BENEFITS.length, 4);
+  assert.equal(HERO_MOCKUP_PREVIEWS.length, 6);
   assert.equal(PAIN_POINTS.length, 6);
   assert.equal(PRODUCT_DEMO_ITEMS.length, 6);
-  assert.deepEqual(
-    PRODUCT_DEMO_ITEMS.map((item) => item.number),
-    ['01', '02', '03', '04', '05', '06']
-  );
+  assert.equal(STEP_ITEMS.length, 3);
   assert.equal(SUPPORT_HIGHLIGHTS.length, 4);
   assert.equal(BONUS_ITEMS.length, 6);
-  for (const bonus of BONUS_ITEMS) {
-    assert.equal(bonus.originalPrice, undefined);
-  }
-  assert.equal(KIT_OPTIONS.premium.bonuses?.length, 6);
-  assert.equal(FAQ_ITEMS.length, 7);
-  assert.equal(
-    FAQ_ITEMS.some((f) => f.id === 'suporte-humanizado'),
-    true
-  );
-  assert.equal(PROMO_DATE_TEXT, 'OFERTA EXCLUSIVA • POR TEMPO LIMITADO');
+  assert.equal(PLAN_COMPARISON_ROWS.length, 6);
+  assert.deepEqual(PLAN_COMPARISON_ROWS[0], {
+    feature: 'Materiais digitais',
+    basico: '100',
+    premium: '250',
+    highlightPremium: true,
+  });
+  assert.deepEqual(PLAN_COMPARISON_ROWS[1], {
+    feature: 'Preço',
+    basico: 'R$ 9,90',
+    premium: 'R$ 29,90',
+    highlightPremium: true,
+  });
+
+  // 1. Kit Básico (R$ 9,90 -> https://pay.cakto.com.br/85z54d3_1324900)
+  assert.equal(KIT_OPTIONS.basico.name, 'KIT BÁSICO');
   assert.equal(KIT_OPTIONS.basico.price, 'R$ 9,90');
-  assert.equal(KIT_OPTIONS.premium.oldPrice, 'R$ 59,90');
-  assert.equal(KIT_OPTIONS.premium.price, 'R$ 29,90');
-  assert.equal(KIT_OPTIONS.basico.subtitle, '50 MATERIAIS DE ORGANIZAÇÃO');
-  assert.equal(KIT_OPTIONS.premium.subtitle, '150 MATERIAIS DE ORGANIZAÇÃO');
-  assert.equal(KIT_OPTIONS.premium.badge, 'MAIS COMPLETO');
+  assert.equal(KIT_OPTIONS.basico.priceNumeric, 9.9);
+  assert.equal(KIT_OPTIONS.basico.materialsCount, 100);
+  assert.equal(KIT_OPTIONS.basico.includedFeatures.length, 6);
+  assert.equal(KIT_OPTIONS.basico.ctaLabel, 'QUERO MEU KIT BÁSICO');
   assert.equal(KIT_OPTIONS.basico.checkoutUrl, 'https://pay.cakto.com.br/85z54d3_1324900');
+
+  // 2. Compra direta do Kit Premium (R$ 29,90 -> https://pay.cakto.com.br/n8msmyw)
+  assert.equal(KIT_OPTIONS.premium.name, 'KIT PREMIUM');
+  assert.equal(KIT_OPTIONS.premium.price, 'R$ 29,90');
+  assert.equal(KIT_OPTIONS.premium.priceNumeric, 29.9);
+  assert.equal(KIT_OPTIONS.premium.materialsCount, 250);
+  assert.equal(KIT_OPTIONS.premium.badge, 'MAIS COMPLETO');
+  assert.equal(KIT_OPTIONS.premium.includedFeatures.length, 9);
+  assert.equal(KIT_OPTIONS.premium.bonuses?.length, 6);
+  assert.equal(KIT_OPTIONS.premium.ctaLabel, 'QUERO MEU KIT PREMIUM');
   assert.equal(KIT_OPTIONS.premium.checkoutUrl, 'https://pay.cakto.com.br/n8msmyw');
-  assert.equal(CAKTO_PREMIUM_UPSELL_URL, 'https://pay.cakto.com.br/xhx8yqu');
+
+  // Garantir que os 3 links de checkout são 100% distintos
+  assert.notEqual(CAKTO_BASICO_URL, CAKTO_PREMIUM_URL);
+  assert.notEqual(CAKTO_BASICO_URL, CAKTO_PREMIUM_UPSELL_URL);
+  assert.notEqual(CAKTO_PREMIUM_URL, CAKTO_PREMIUM_UPSELL_URL);
+
+  assert.equal(FAQ_ITEMS.length, 7);
+  assert.equal(PROMO_DATE_TEXT, 'OFERTA EXCLUSIVA • POR TEMPO LIMITADO');
 });
 
-test('all 17 active planner images have AVIF + WebP + responsive mobile variants on disk and unused files are removed', () => {
+test('all active planner images have AVIF + WebP + responsive mobile variants on disk and unused files are removed', () => {
   assert.equal(CAROUSEL_MODELS.length, 8);
   assert.equal(STEP_ITEMS.length, 3);
 
   const uniquePaths = new Set([
     HERO_PLANNER_IMAGE,
     GUARANTEE_BADGE_IMAGE,
+    ...HERO_MOCKUP_PREVIEWS.map((m) => m.image),
     ...CAROUSEL_MODELS.map((m) => m.image),
     ...STEP_ITEMS.map((s) => s.image),
     ...BONUS_ITEMS.map((b) => b.image),
@@ -119,7 +244,6 @@ test('all 17 active planner images have AVIF + WebP + responsive mobile variants
     assert.equal(fs.statSync(avifDiskPath).size > 500, true);
   }
 
-  // Verify responsive mobile hero variants exist
   assert.equal(
     fs.existsSync(path.resolve('public/assets/planners/hero-planner-640w.avif')),
     true
@@ -128,8 +252,22 @@ test('all 17 active planner images have AVIF + WebP + responsive mobile variants
     fs.existsSync(path.resolve('public/assets/planners/hero-planner-640w.webp')),
     true
   );
-
-  // Verify unused directory was removed
+  assert.equal(
+    fs.existsSync(path.resolve('public/assets/planners/vitrine-uso-planner.avif')),
+    true
+  );
+  assert.equal(
+    fs.existsSync(path.resolve('public/assets/planners/vitrine-uso-planner.webp')),
+    true
+  );
+  assert.equal(
+    fs.existsSync(path.resolve('public/assets/planners/vitrine-uso-planner-640w.avif')),
+    true
+  );
+  assert.equal(
+    fs.existsSync(path.resolve('public/assets/planners/vitrine-uso-planner-640w.webp')),
+    true
+  );
   assert.equal(fs.existsSync(path.resolve('public/assets/cloned')), false);
 });
 
@@ -148,32 +286,52 @@ test('ensureWritableWindowFetch converts getter-only fetch into assignable prope
   assert.equal(mockWin.fetch, replacementFn);
 });
 
-test('upsell modal content and resolveUpsellAction handle decline and accept paths safely', () => {
-  assert.equal(UPSELL_MODAL_CONTENT.headline, 'OFERTA EXCLUSIVA PARA VOCÊ!');
-  assert.equal(UPSELL_MODAL_CONTENT.subheadline, 'Que tal levar a coleção completa?');
-  assert.equal(UPSELL_MODAL_CONTENT.productTitle, 'KIT PREMIUM — PLANNER 2027');
-  assert.equal(UPSELL_MODAL_CONTENT.originalPrice, 'R$ 29,90');
-  assert.equal(UPSELL_MODAL_CONTENT.promotionalPrice, 'R$ 19,90');
-  assert.equal(UPSELL_MODAL_CONTENT.acceptCtaLabel, 'SIM! QUERO MEU PREMIUM POR R$ 19,90');
+test('strategic upgrade popup content and resolveUpsellAction handle decline (R$ 9,90) and accept (R$ 19,90) paths safely without mixing with normal R$ 29,90 link', () => {
+  assert.equal(
+    UPSELL_MODAL_CONTENT.headline,
+    'ESPERE! TEMOS UMA OFERTA ESPECIAL PARA VOCÊ!'
+  );
+  assert.equal(
+    UPSELL_MODAL_CONTENT.subheadline,
+    'Por apenas R$ 19,90, leve o Kit Premium com 250 materiais digitais!'
+  );
+  assert.equal(UPSELL_MODAL_CONTENT.basicComparison.name, 'BÁSICO');
+  assert.equal(UPSELL_MODAL_CONTENT.basicComparison.materialsLabel, '100 materiais digitais');
+  assert.equal(UPSELL_MODAL_CONTENT.basicComparison.price, 'R$ 9,90');
+  assert.equal(UPSELL_MODAL_CONTENT.premiumComparison.name, 'PREMIUM');
+  assert.equal(UPSELL_MODAL_CONTENT.premiumComparison.materialsLabel, '250 materiais digitais');
+  assert.equal(UPSELL_MODAL_CONTENT.premiumComparison.normalPrice, 'R$ 29,90');
+  assert.equal(UPSELL_MODAL_CONTENT.premiumComparison.normalPriceNumeric, 29.9);
+  assert.equal(UPSELL_MODAL_CONTENT.premiumComparison.price, 'R$ 19,90');
+  assert.equal(UPSELL_MODAL_CONTENT.premiumComparison.priceNumeric, 19.9);
+  assert.equal(
+    UPSELL_MODAL_CONTENT.acceptCtaLabel,
+    'SIM! QUERO O PREMIUM POR R$ 19,90'
+  );
   assert.equal(
     UPSELL_MODAL_CONTENT.declineCtaLabel,
-    'Não, obrigado. Quero continuar com o plano básico'
+    'NÃO, PREFIRO O BÁSICO POR R$ 9,90'
   );
 
-  // Path 1: Decline -> always redirects to Basic plan checkout
+  // Path 1: Decline -> always redirects to Basic plan checkout (R$ 9,90)
   const declined = resolveUpsellAction('decline');
   assert.equal(declined.status, 'redirect');
-  assert.equal(declined.targetUrl, CAKTO_BASICO_URL);
+  assert.equal(declined.targetUrl, 'https://pay.cakto.com.br/85z54d3_1324900');
   assert.equal(declined.priceNumeric, 9.9);
 
-  // Path 2: Default Accept -> redirects to official promotional R$ 19,90 checkout
+  // Path 2: Accept -> redirects exclusively to Promotional Popup Premium checkout (R$ 19,90)
   const acceptedDefault = resolveUpsellAction('accept');
   assert.equal(acceptedDefault.status, 'redirect');
   assert.equal(acceptedDefault.targetUrl, 'https://pay.cakto.com.br/xhx8yqu');
   assert.equal(acceptedDefault.priceNumeric, 19.9);
 
-  // Safeguard: Never reuse the R$ 29,90 checkout link pretending it is R$ 19,90
-  const rejectedSameAs2990 = resolveUpsellAction('accept', CAKTO_PREMIUM_URL);
-  assert.equal(rejectedSameAs2990.status, 'missing_upsell_url');
-  assert.equal(rejectedSameAs2990.targetUrl, null);
+  // Safeguard 1: Never allow Basic R$ 9,90 checkout link to be used as Popup Upgrade R$ 19,90 link
+  const rejectedSameAsBasic = resolveUpsellAction('accept', CAKTO_BASICO_URL);
+  assert.equal(rejectedSameAsBasic.status, 'missing_upsell_url');
+  assert.equal(rejectedSameAsBasic.targetUrl, null);
+
+  // Safeguard 2: Never allow Normal Direct Premium R$ 29,90 checkout link to be used as Popup Upgrade R$ 19,90 link
+  const rejectedSameAsNormalPremium = resolveUpsellAction('accept', CAKTO_PREMIUM_URL);
+  assert.equal(rejectedSameAsNormalPremium.status, 'missing_upsell_url');
+  assert.equal(rejectedSameAsNormalPremium.targetUrl, null);
 });
