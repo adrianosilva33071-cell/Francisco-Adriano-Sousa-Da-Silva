@@ -12,12 +12,6 @@ export interface PainPointItem {
   text: string;
 }
 
-export interface SolutionMaterialItem {
-  id: string;
-  name: string;
-  image: string;
-}
-
 export interface ProductDemoItem {
   id: string;
   number: string;
@@ -32,28 +26,6 @@ export interface StepItem {
   title: string;
   description: string;
   image: string;
-}
-
-export interface WhyLoveItem {
-  id: string;
-  title: string;
-  description: string;
-  iconName: 'check' | 'file' | 'clock' | 'layers' | 'grid' | 'download';
-  tone: 'pink' | 'purple';
-  image: string;
-}
-
-export interface WhatsAppDemoChat {
-  id: string;
-  numberLabel: string;
-  topic: string;
-  contactLabel: string;
-  clientMessage: string;
-  clientTime: string;
-  replyMessage: string;
-  replyTime: string;
-  /** Optional real screenshot path when authorized client captures are added later */
-  authorizedScreenshotUrl?: string;
 }
 
 export interface BonusItem {
@@ -92,35 +64,105 @@ export interface KitOption {
 
 export const CAKTO_BASICO_URL = 'https://pay.cakto.com.br/85z54d3_1324900';
 export const CAKTO_PREMIUM_URL = 'https://pay.cakto.com.br/n8msmyw';
+/**
+ * Link específico do checkout promocional do Kit Premium por R$ 19,90 (Upsell).
+ */
+export const CAKTO_PREMIUM_UPSELL_URL = 'https://pay.cakto.com.br/xhx8yqu';
 
-export const PROMO_DATE_TEXT = 'COLEÇÃO PLANNER 2027 • ACESSO DIGITAL • PRONTO PARA IMPRIMIR';
+export interface UpsellModalContent {
+  headline: string;
+  subheadline: string;
+  productTitle: string;
+  originalPrice: string;
+  promotionalPrice: string;
+  promotionalPriceNumeric: number;
+  highlightBadge: string;
+  acceptCtaLabel: string;
+  declineCtaLabel: string;
+}
+
+export const UPSELL_MODAL_CONTENT: UpsellModalContent = {
+  headline: 'OFERTA EXCLUSIVA PARA VOCÊ!',
+  subheadline: 'Que tal levar a coleção completa?',
+  productTitle: 'KIT PREMIUM — PLANNER 2027',
+  originalPrice: 'R$ 29,90',
+  promotionalPrice: 'R$ 19,90',
+  promotionalPriceNumeric: 19.9,
+  highlightBadge: 'CONDIÇÃO ESPECIAL DISPONÍVEL NESTA OFERTA!',
+  acceptCtaLabel: 'SIM! QUERO MEU PREMIUM POR R$ 19,90',
+  declineCtaLabel: 'Não, obrigado. Quero continuar com o plano básico',
+};
+
+export function resolveUpsellAction(
+  decision: 'accept' | 'decline',
+  configuredUpsellUrl: string = CAKTO_PREMIUM_UPSELL_URL
+): {
+  status: 'redirect' | 'missing_upsell_url';
+  targetUrl: string | null;
+  kitName: string;
+  priceNumeric: number;
+} {
+  if (decision === 'decline') {
+    return {
+      status: 'redirect',
+      targetUrl: CAKTO_BASICO_URL,
+      kitName: 'KIT BÁSICO',
+      priceNumeric: 9.9,
+    };
+  }
+
+  const trimmedUpsell = configuredUpsellUrl.trim();
+  // Never allow the R$ 29,90 checkout URL to masquerade as the R$ 19,90 upsell URL
+  if (!trimmedUpsell || trimmedUpsell === CAKTO_PREMIUM_URL) {
+    return {
+      status: 'missing_upsell_url',
+      targetUrl: null,
+      kitName: 'KIT PREMIUM (UPSELL R$ 19,90)',
+      priceNumeric: UPSELL_MODAL_CONTENT.promotionalPriceNumeric,
+    };
+  }
+
+  return {
+    status: 'redirect',
+    targetUrl: trimmedUpsell,
+    kitName: 'KIT PREMIUM (UPSELL R$ 19,90)',
+    priceNumeric: UPSELL_MODAL_CONTENT.promotionalPriceNumeric,
+  };
+}
+
+export const PROMO_DATE_TEXT = 'OFERTA EXCLUSIVA • POR TEMPO LIMITADO';
 
 export const HERO_PLANNER_IMAGE = '/assets/planners/hero-planner.webp';
-export const STATIONERY_DECORATION_IMAGE = '/assets/planners/decoracao-papelaria.webp';
 export const GUARANTEE_BADGE_IMAGE = '/assets/planners/selo-garantia.webp';
 
-export const TESTIMONIAL_IMAGES: { id: number; src: string; alt: string }[] = [
-  {
-    id: 1,
-    src: '/assets/cloned/depoimento-1.webp',
-    alt: 'Depoimento 1 no WhatsApp sobre a Coleção Planner 2027',
-  },
-  {
-    id: 2,
-    src: '/assets/cloned/depoimento-2.webp',
-    alt: 'Depoimento 2 no WhatsApp confirmando recebimento dos arquivos',
-  },
-  {
-    id: 3,
-    src: '/assets/cloned/depoimento-3.webp',
-    alt: 'Depoimento 3 no WhatsApp elogiando os modelos da coleção',
-  },
-  {
-    id: 4,
-    src: '/assets/cloned/depoimento-4.webp',
-    alt: 'Depoimento 4 no WhatsApp elogiando o material',
-  },
-];
+export function toAvifUrl(webpPath: string): string {
+  return webpPath.replace(/\.webp$/i, '.avif');
+}
+
+export function getResponsiveImageSources(
+  webpPath: string,
+  mobileVariant?: { suffix: string; widthDescriptor: string; fullWidthDescriptor: string }
+): {
+  avifSrcSet: string;
+  webpSrcSet: string;
+  fallbackWebp: string;
+} {
+  const baseAvif = toAvifUrl(webpPath);
+  if (!mobileVariant) {
+    return {
+      avifSrcSet: baseAvif,
+      webpSrcSet: webpPath,
+      fallbackWebp: webpPath,
+    };
+  }
+  const mobileWebp = webpPath.replace(/\.webp$/i, `-${mobileVariant.suffix}.webp`);
+  const mobileAvif = webpPath.replace(/\.webp$/i, `-${mobileVariant.suffix}.avif`);
+  return {
+    avifSrcSet: `${mobileAvif} ${mobileVariant.widthDescriptor}, ${baseAvif} ${mobileVariant.fullWidthDescriptor}`,
+    webpSrcSet: `${mobileWebp} ${mobileVariant.widthDescriptor}, ${webpPath} ${mobileVariant.fullWidthDescriptor}`,
+    fallbackWebp: webpPath,
+  };
+}
 
 export function formatBrazilianDate(date: Date): string {
   const day = String(date.getUTCDate()).padStart(2, '0');
@@ -138,28 +180,16 @@ export function formatCurrencyBRL(amount: number): string {
   return `R$ ${amount.toFixed(2).replace('.', ',')}`;
 }
 
-export function getNextCarouselIndex(currentIndex: number, total: number, direction: 'next' | 'prev'): number {
+export function getNextCarouselIndex(
+  currentIndex: number,
+  total: number,
+  direction: 'next' | 'prev'
+): number {
   if (total <= 0) return 0;
   if (direction === 'next') {
     return (currentIndex + 1) % total;
   }
   return (currentIndex - 1 + total) % total;
-}
-
-export function validateCheckoutInput(input: { name: string; email: string }): {
-  valid: boolean;
-  error?: string;
-} {
-  const trimmedName = input.name.trim();
-  const trimmedEmail = input.email.trim();
-  if (!trimmedName || trimmedName.length < 2) {
-    return { valid: false, error: 'Informe seu nome completo para receber o acesso.' };
-  }
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(trimmedEmail)) {
-    return { valid: false, error: 'Informe um e-mail válido para envio dos arquivos.' };
-  }
-  return { valid: true };
 }
 
 export function ensureWritableWindowFetch(target: Record<string, unknown>): boolean {
@@ -211,44 +241,6 @@ export const PAIN_POINTS: PainPointItem[] = [
   {
     id: 'acompanhar-habitos',
     text: 'Gostaria de acompanhar seus hábitos e sua evolução.',
-  },
-];
-
-export const SOLUTION_MATERIALS: SolutionMaterialItem[] = [
-  {
-    id: 'sol-semanal',
-    name: 'Planner semanal',
-    image: '/assets/planners/planejamento-semanal.webp',
-  },
-  {
-    id: 'sol-mensal',
-    name: 'Calendário mensal',
-    image: '/assets/planners/calendario-mensal.webp',
-  },
-  {
-    id: 'sol-habitos',
-    name: 'Controle de hábitos',
-    image: '/assets/planners/controle-habitos.webp',
-  },
-  {
-    id: 'sol-tarefas',
-    name: 'Lista de tarefas',
-    image: '/assets/planners/lista-tarefas.webp',
-  },
-  {
-    id: 'sol-metas',
-    name: 'Planejamento de metas',
-    image: '/assets/planners/metas.webp',
-  },
-  {
-    id: 'sol-financeiro',
-    name: 'Controle financeiro',
-    image: '/assets/planners/planejamento-financeiro.webp',
-  },
-  {
-    id: 'sol-compromissos',
-    name: 'Organização de compromissos',
-    image: '/assets/planners/organizador-diario.webp',
   },
 ];
 
@@ -374,142 +366,23 @@ export const STEP_ITEMS: StepItem[] = [
   {
     step: 1,
     title: '1. Acesse seus arquivos digitais',
-    description: 'Após a confirmação do pagamento, você recebe o acesso para baixar seus materiais no celular ou computador.',
+    description:
+      'Após a confirmação do pagamento, você recebe o acesso para baixar seus materiais no celular ou computador.',
     image: '/assets/planners/passo-download.webp',
   },
   {
     step: 2,
     title: '2. Imprima em casa ou na gráfica',
-    description: 'Os modelos podem ser impressos em impressora comum, sem precisar de máquina de corte.',
+    description:
+      'Os modelos podem ser impressos em impressora comum, sem precisar de máquina de corte.',
     image: '/assets/planners/passo-impressao.webp',
   },
   {
     step: 3,
     title: '3. Comece a organizar seu 2027',
-    description: 'Utilize em pasta, fichário, prancheta ou encaderne como preferir para acompanhar sua rotina.',
+    description:
+      'Utilize em pasta, fichário, prancheta ou encaderne como preferir para acompanhar sua rotina.',
     image: '/assets/planners/passo-utilizacao.webp',
-  },
-];
-
-export const WHY_LOVE_ITEMS: WhyLoveItem[] = [
-  {
-    id: 'facil',
-    title: 'Fácil de usar',
-    description: 'Layouts práticos para preencher no seu ritmo.',
-    iconName: 'check',
-    tone: 'pink',
-    image: '/assets/planners/beneficio-facil.webp',
-  },
-  {
-    id: 'pronto',
-    title: 'Pronto para imprimir',
-    description: 'Formatado em A4 para impressão simples.',
-    iconName: 'file',
-    tone: 'purple',
-    image: '/assets/planners/beneficio-impressao.webp',
-  },
-  {
-    id: 'tempo',
-    title: 'Economia de tempo',
-    description: 'Páginas prontas para facilitar seu planejamento.',
-    iconName: 'clock',
-    tone: 'pink',
-    image: '/assets/planners/beneficio-tempo.webp',
-  },
-  {
-    id: 'qualidade',
-    title: 'Alta qualidade',
-    description: 'Arquivos digitais com visual limpo e delicado.',
-    iconName: 'layers',
-    tone: 'purple',
-    image: '/assets/planners/beneficio-qualidade.webp',
-  },
-  {
-    id: 'opcoes',
-    title: 'Diversas opções',
-    description: 'Materiais para rotina, metas, tarefas e finanças.',
-    iconName: 'grid',
-    tone: 'pink',
-    image: '/assets/planners/beneficio-variedade.webp',
-  },
-  {
-    id: 'acesso',
-    title: 'Acesso digital',
-    description: 'Disponível após a confirmação do pagamento.',
-    iconName: 'download',
-    tone: 'purple',
-    image: '/assets/planners/beneficio-acesso.webp',
-  },
-];
-
-export const INCLUDED_CHECKLIST: string[] = [
-  'Tenha suas atividades organizadas.',
-  'Planeje sua semana com mais clareza.',
-  'Acompanhe seus hábitos.',
-  'Visualize suas metas.',
-  'Organize seus compromissos.',
-  'Tenha seus materiais sempre disponíveis para imprimir.',
-  'Economize tempo na hora de planejar.',
-];
-
-export const WHATSAPP_DEMO_CHATS: WhatsAppDemoChat[] = [
-  {
-    id: 'conversa-01',
-    numberLabel: 'CONVERSA 01',
-    topic: 'ORGANIZAÇÃO DA ROTINA',
-    contactLabel: 'Cliente Demonstrativo 01 (Exemplo)',
-    clientMessage:
-      'Eu estava precisando muito de algo para organizar minha semana. Gostei bastante da variedade de planners!',
-    clientTime: '09:42',
-    replyMessage: 'Que bom! A ideia é justamente facilitar seu planejamento. 💗',
-    replyTime: '09:44',
-  },
-  {
-    id: 'conversa-02',
-    numberLabel: 'CONVERSA 02',
-    topic: 'CONTROLE DE HÁBITOS',
-    contactLabel: 'Cliente Demonstrativo 02 (Exemplo)',
-    clientMessage:
-      'Gostei muito da parte de controle de hábitos. Quero começar a acompanhar melhor minha rotina.',
-    clientTime: '11:15',
-    replyMessage:
-      'Esse material pode ajudar você a visualizar seus hábitos e acompanhar sua evolução! 😊',
-    replyTime: '11:17',
-  },
-  {
-    id: 'conversa-03',
-    numberLabel: 'CONVERSA 03',
-    topic: 'PLANEJAMENTO SEMANAL',
-    contactLabel: 'Cliente Demonstrativo 03 (Exemplo)',
-    clientMessage:
-      'Os modelos são muito bonitos! Já estou organizando minhas atividades da semana.',
-    clientTime: '14:28',
-    replyMessage: 'Ficamos felizes que tenha gostado! Aproveite sua coleção. 💗',
-    replyTime: '14:30',
-  },
-  {
-    id: 'conversa-04',
-    numberLabel: 'CONVERSA 04',
-    topic: 'ORGANIZAÇÃO FINANCEIRA',
-    contactLabel: 'Cliente Demonstrativo 04 (Exemplo)',
-    clientMessage:
-      'Gostei de ter opções para organizar minhas despesas também. Era algo que eu estava procurando.',
-    clientTime: '16:05',
-    replyMessage:
-      'Ótimo! O material financeiro foi pensado para ajudar no acompanhamento das suas receitas e despesas.',
-    replyTime: '16:08',
-  },
-  {
-    id: 'conversa-05',
-    numberLabel: 'CONVERSA 05',
-    topic: 'EXPERIÊNCIA COM O MATERIAL',
-    contactLabel: 'Cliente Demonstrativo 05 (Exemplo)',
-    clientMessage:
-      'Gostei de poder imprimir e deixar tudo organizado no meu cantinho de estudos.',
-    clientTime: '19:12',
-    replyMessage:
-      'Que bom! Esperamos que a coleção ajude bastante na sua organização. 💗',
-    replyTime: '19:14',
   },
 ];
 
@@ -553,7 +426,8 @@ export const BONUS_ITEMS: BonusItem[] = [
     number: '06',
     title: 'ATUALIZAÇÕES INCLUÍDAS',
     benefitTag: 'BÔNUS PREMIUM',
-    description: 'Acesso às atualizações da coleção conforme as condições reais de entrega da oferta.',
+    description:
+      'Acesso às atualizações da coleção conforme as condições reais de entrega da oferta.',
     image: '/assets/planners/planner-capa.webp',
   },
 ];
@@ -594,6 +468,7 @@ export const KIT_OPTIONS: Record<'basico' | 'premium', KitOption> = {
     badge: 'MAIS COMPLETO',
     idealFor:
       'A coleção mais completa para organizar sua rotina, acompanhar suas metas e cuidar melhor das suas finanças durante 2027.',
+    oldPrice: 'R$ 59,90',
     price: 'R$ 29,90',
     priceNumeric: 29.9,
     paymentNote: 'Pagamento único • Sem mensalidades • Acesso digital • Garantia de 7 dias.',
@@ -644,8 +519,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'mensalidade',
     question: 'Preciso pagar mensalidade?',
-    answer:
-      'Não. A oferta possui pagamento único, sem mensalidades.',
+    answer: 'Não. A oferta possui pagamento único, sem mensalidades.',
   },
   {
     id: 'diferenca-kits',
@@ -666,4 +540,3 @@ export const FAQ_ITEMS: FaqItem[] = [
       'O cliente possui 7 dias de garantia, conforme as condições informadas na política de garantia e nos Termos de Uso.',
   },
 ];
-

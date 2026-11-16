@@ -52,7 +52,7 @@ export function LegalModal({ activeModal, onClose }: LegalModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#191020]/70 p-3 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="legal-modal-title"
@@ -60,23 +60,23 @@ export function LegalModal({ activeModal, onClose }: LegalModalProps) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-md rounded-[24px] border border-[#e4d9ed] bg-white p-6 md:p-7 shadow-2xl">
+      <div className="relative w-full max-w-md max-h-[calc(100dvh-24px)] overflow-y-auto overscroll-contain rounded-[24px] border border-[#e4d9ed] bg-white p-5 sm:p-7 shadow-2xl animate-modal-enter">
         <button
           type="button"
           onClick={onClose}
           aria-label="Fechar informações"
-          className="absolute top-3.5 right-3.5 flex h-11 w-11 items-center justify-center rounded-full bg-[#fef8fc] text-[#6e6275] hover:bg-[#ffe9f8] hover:text-[#c22182] transition-colors cursor-pointer"
+          className="absolute top-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#fef8fc] text-[#6e6275] hover:bg-[#ffe9f8] hover:text-[#c22182] transition-colors cursor-pointer"
         >
           <X className="h-5 w-5" />
         </button>
 
         <h3
           id="legal-modal-title"
-          className="font-display text-[24px] font-bold text-[#2a212f]"
+          className="font-display text-[22px] sm:text-[24px] font-bold text-[#2a212f] pr-10"
         >
           {current.title}
         </h3>
-        <div className="mt-4 space-y-3 text-[14.5px] leading-[1.6] text-[#6e6275]">
+        <div className="mt-3.5 space-y-3 text-[14px] sm:text-[14.5px] leading-[1.6] text-[#5e5166]">
           {current.body.map((paragraph, i) => (
             <p key={i}>{paragraph}</p>
           ))}
@@ -84,7 +84,7 @@ export function LegalModal({ activeModal, onClose }: LegalModalProps) {
         <button
           type="button"
           onClick={onClose}
-          className="mt-6 w-full h-[46px] rounded-full bg-[#c22182] hover:bg-[#ad1c73] text-white font-semibold text-[13.5px] uppercase tracking-wide transition-colors cursor-pointer"
+          className="mt-5 w-full min-h-[48px] rounded-full bg-[#c22182] hover:bg-[#ad1c73] active:scale-[0.99] text-white font-semibold text-[13.5px] uppercase tracking-wide transition-all cursor-pointer"
         >
           Entendi
         </button>
@@ -92,3 +92,5 @@ export function LegalModal({ activeModal, onClose }: LegalModalProps) {
     </div>
   );
 }
+
+export default LegalModal;

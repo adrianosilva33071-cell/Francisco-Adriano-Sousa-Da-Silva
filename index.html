@@ -2,11 +2,27 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <script>
       (function () {
         try {
-          var currentFetch = window.fetch ? window.fetch.bind(window) : undefined;
+          var mockLocalTrackingResponse = function () {
+            return new Response('{"_id":"local","_status":"ok"}', {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            });
+          };
+          var nativeFetch = window.fetch ? window.fetch.bind(window) : undefined;
+          var safeFetch = nativeFetch
+            ? function (input, init) {
+                var urlStr = typeof input === 'string' ? input : (input && input.url) || '';
+                if (urlStr.indexOf('localhost:3001/tracking') !== -1) {
+                  return Promise.resolve(mockLocalTrackingResponse());
+                }
+                return nativeFetch(input, init);
+              }
+            : undefined;
+          var currentFetch = safeFetch;
           var desc =
             Object.getOwnPropertyDescriptor(window, 'fetch') ||
             Object.getOwnPropertyDescriptor(Window.prototype, 'fetch');
@@ -19,7 +35,13 @@
               },
               set: function (fn) {
                 if (typeof fn === 'function') {
-                  currentFetch = fn;
+                  currentFetch = function (input, init) {
+                    var urlStr = typeof input === 'string' ? input : (input && input.url) || '';
+                    if (urlStr.indexOf('localhost:3001/tracking') !== -1) {
+                      return Promise.resolve(mockLocalTrackingResponse());
+                    }
+                    return fn(input, init);
+                  };
                 }
               },
             });
@@ -71,18 +93,43 @@
       content="Organize sua rotina em 2027 com planners, listas, controle de hábitos, planejamento mensal, materiais financeiros, 6 bônus digitais e suporte humanizado. Escolha seu kit."
     />
     <meta name="twitter:image" content="/assets/planners/hero-planner.webp" />
+
+    <!-- Preconnect para checkout e fontes para reduzir latência em redes 4G -->
+    <link rel="preconnect" href="https://pay.cakto.com.br" />
+    <link rel="dns-prefetch" href="https://pay.cakto.com.br" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Preload responsivo da imagem principal (LCP) priorizando AVIF mobile -->
     <link
       rel="preload"
       as="image"
-      href="/assets/planners/hero-planner.webp"
+      type="image/avif"
+      href="/assets/planners/hero-planner-640w.avif"
+      imagesrcset="/assets/planners/hero-planner-640w.avif 640w, /assets/planners/hero-planner.avif 1272w"
+      imagesizes="(max-width: 640px) 92vw, 600px"
       fetchpriority="high"
     />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Carregamento assíncrono não-bloqueante de fontes -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@600;700&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -112,4 +159,3 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

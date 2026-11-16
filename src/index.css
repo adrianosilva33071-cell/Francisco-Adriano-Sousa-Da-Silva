@@ -1,15 +1,49 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Fredoka", "Baloo 2", sans-serif;
-  --font-sans: "Poppins", sans-serif;
+  --font-display: "Fredoka", system-ui, -apple-system, sans-serif;
+  --font-sans: "Poppins", system-ui, -apple-system, sans-serif;
 }
 
 html {
   scroll-behavior: smooth;
-  font-family: "Poppins", sans-serif;
+  font-family: "Poppins", system-ui, -apple-system, sans-serif;
   color: #2a212f;
   background-color: #fef8fc;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a,
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Renderização sob demanda para seções abaixo da primeira dobra em celulares simples */
+.cv-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 620px;
+}
+
+/* Safe-area support para aparelhos com barra inferior / notch */
+.pb-safe-bar {
+  padding-bottom: calc(0.625rem + env(safe-area-inset-bottom, 0px));
+}
+
+.footer-safe-space {
+  padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .footer-safe-space {
+    padding-bottom: 2rem;
+  }
 }
 
 @keyframes marquee-left {
@@ -30,14 +64,29 @@ html {
   }
 }
 
+@keyframes modal-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translate3d(0, 6px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
 .animate-marquee-left {
-  animation: marquee-left 38s linear infinite;
+  animation: marquee-left 40s linear infinite;
   will-change: transform;
 }
 
 .animate-marquee-right {
-  animation: marquee-right 38s linear infinite;
+  animation: marquee-right 40s linear infinite;
   will-change: transform;
+}
+
+.animate-modal-enter {
+  animation: modal-enter 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-marquee-left:hover,
@@ -47,15 +96,6 @@ html {
   animation-play-state: paused;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
 a:focus-visible,
 button:focus-visible {
   outline: 2px solid #c22182;
@@ -63,9 +103,13 @@ button:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .animate-marquee-left,
-  .animate-marquee-right {
-    animation: none;
+  .animate-marquee-right,
+  .animate-modal-enter {
+    animation: none !important;
+    will-change: auto;
   }
 }
-
