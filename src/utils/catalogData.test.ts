@@ -3,12 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  formatBrazilianDate,
   calculatePriceDifference,
   calculateSavings,
   formatCurrencyBRL,
   getNextCarouselIndex,
-  ensureWritableWindowFetch,
   buildCheckoutUrlWithTracking,
   createTrackingEventId,
   dispatchFunnelTrackingEvent,
@@ -37,11 +35,6 @@ import {
   toAvifUrl,
   getResponsiveImageSources,
 } from './catalogData';
-
-test('formatBrazilianDate formats 2026-11-14 as 14/11/2026', () => {
-  const d = new Date('2026-11-14T12:00:00Z');
-  assert.equal(formatBrazilianDate(d), '14/11/2026');
-});
 
 test('calculatePriceDifference computes exact R$ 10,00 popup difference (R$ 19,90 vs R$ 9,90) and R$ 18,00 direct difference (R$ 27,90 vs R$ 9,90)', () => {
   const popupDiff = calculatePriceDifference(
@@ -277,21 +270,6 @@ test('all active planner images have AVIF + WebP + responsive mobile variants on
   assert.equal(fs.existsSync(path.resolve('public/assets/cloned')), false);
 });
 
-test('ensureWritableWindowFetch converts getter-only fetch into assignable property', () => {
-  const mockWin: Record<string, unknown> = {};
-  const originalFn = () => 'original';
-  Object.defineProperty(mockWin, 'fetch', {
-    configurable: true,
-    get() {
-      return originalFn;
-    },
-  });
-  assert.equal(ensureWritableWindowFetch(mockWin), true);
-  const replacementFn = () => 'replaced';
-  mockWin.fetch = replacementFn;
-  assert.equal(mockWin.fetch, replacementFn);
-});
-
 test('strategic upgrade popup content and resolveUpsellAction handle decline (R$ 9,90) and accept (R$ 19,90) paths safely without mixing with normal R$ 27,90 link', () => {
   assert.equal(
     UPSELL_MODAL_CONTENT.headline,
@@ -341,3 +319,13 @@ test('strategic upgrade popup content and resolveUpsellAction handle decline (R$
   assert.equal(rejectedSameAsNormalPremium.status, 'missing_upsell_url');
   assert.equal(rejectedSameAsNormalPremium.targetUrl, null);
 });
+
+test('index.html never overwrites native window.fetch and preserves Meta Pixel and UTMify scripts', () => {
+  const html = fs.readFileSync(path.resolve('index.html'), 'utf-8');
+  assert.equal(/window\.fetch\s*=/.test(html), false, 'index.html must never overwrite window.fetch');
+  assert.equal(/globalThis\.fetch\s*=/.test(html), false, 'index.html must never overwrite globalThis.fetch');
+  assert.equal(html.includes("fbq('init', '2206669040218715')"), true);
+  assert.equal(html.includes('var w_6wr=atob('), true);
+  assert.equal(html.includes('var s_bg7=atob('), true);
+});
+

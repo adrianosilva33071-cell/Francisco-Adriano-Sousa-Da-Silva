@@ -2,39 +2,6 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      (function () {
-        var isLocal =
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1";
-        var origFetch = window.fetch;
-        if (origFetch && isLocal) {
-          window.fetch = function (input, init) {
-            var url = typeof input === "string" ? input : input && input.url ? input.url : "";
-            if (
-              url.indexOf("localhost:3001/tracking") !== -1 ||
-              url.indexOf("tracking.utmify.com.br/tracking/v1/events") !== -1
-            ) {
-              return Promise.resolve(
-                new Response(
-                  JSON.stringify({
-                    ok: true,
-                    _id: "local-preview",
-                    lead: { _id: "local-preview", parameters: "" },
-                    data: { _id: "local-preview", lead: { _id: "local-preview" } },
-                  }),
-                  {
-                    status: 200,
-                    headers: { "Content-Type": "application/json" },
-                  }
-                )
-              );
-            }
-            return origFetch.apply(this, arguments);
-          };
-        }
-      })();
-    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Planner 2027 Digital | Kit Básico (100 Materiais) e Kit Premium (250 Materiais)</title>
     <meta
@@ -86,7 +53,7 @@
       type="image/avif"
       href="/assets/planners/hero-planner-640w.avif"
       imagesrcset="/assets/planners/hero-planner-640w.avif 640w, /assets/planners/hero-planner.avif 1272w"
-      imagesizes="(max-width: 640px) 92vw, 620px"
+      imagesizes="(max-width: 1023px) 92vw, 540px"
       fetchpriority="high"
     />
 

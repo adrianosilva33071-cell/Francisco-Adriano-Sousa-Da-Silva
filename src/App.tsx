@@ -32,6 +32,7 @@ import {
   CAKTO_BASICO_URL,
   CAKTO_PREMIUM_UPSELL_URL,
   CAKTO_PREMIUM_URL,
+  calculatePriceDifference,
   CAROUSEL_MODELS,
   dispatchFunnelTrackingEvent,
   FAQ_ITEMS,
@@ -89,6 +90,47 @@ const LIFESTYLE_SOURCES = getResponsiveImageSources(LIFESTYLE_PLANNER_IMAGE, {
   fullWidthDescriptor: '960w',
 });
 
+const HERO_PREVIEW_SOURCES = HERO_MOCKUP_PREVIEWS.map((preview) => ({
+  ...preview,
+  sources: getResponsiveImageSources(preview.image, {
+    suffix: '280w',
+    widthDescriptor: '280w',
+    fullWidthDescriptor: '424w',
+  }),
+}));
+
+const PRODUCT_DEMO_SOURCES = PRODUCT_DEMO_ITEMS.map((demo) => ({
+  ...demo,
+  sources: getResponsiveImageSources(demo.image, {
+    suffix: '280w',
+    widthDescriptor: '280w',
+    fullWidthDescriptor: '424w',
+  }),
+}));
+
+const CAROUSEL_MODEL_SOURCES = CAROUSEL_MODELS.map((model) => ({
+  ...model,
+  sources: getResponsiveImageSources(model.image, {
+    suffix: '280w',
+    widthDescriptor: '280w',
+    fullWidthDescriptor: '424w',
+  }),
+}));
+
+const BONUS_ITEM_SOURCES = BONUS_ITEMS.map((bonus) => ({
+  ...bonus,
+  sources: getResponsiveImageSources(bonus.image, {
+    suffix: '280w',
+    widthDescriptor: '280w',
+    fullWidthDescriptor: '424w',
+  }),
+}));
+
+const POPUP_PRICE_DIFF = calculatePriceDifference(
+  UPSELL_MODAL_CONTENT.premiumComparison.priceNumeric,
+  KIT_OPTIONS.basico.priceNumeric
+);
+
 export default function App() {
   const [openFaqId, setOpenFaqId] = useState<string | null>('como-recebo');
   const [isUpsellModalOpen, setIsUpsellModalOpen] = useState<boolean>(false);
@@ -102,6 +144,7 @@ export default function App() {
 
   const touchStartXRef = useRef<number | null>(null);
   const directCheckoutLockRef = useRef<boolean>(false);
+  const directCheckoutTimerRef = useRef<number | null>(null);
   const viewContentTrackedRef = useRef<boolean>(false);
 
   const premiumCheckoutHref = useMemo(
@@ -151,7 +194,13 @@ export default function App() {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (directCheckoutTimerRef.current !== null) {
+        window.clearTimeout(directCheckoutTimerRef.current);
+        directCheckoutTimerRef.current = null;
+      }
+    };
   }, []);
 
   // 2. Clique no botão do Básico (R$ 9,90) -> Registra ClickBasicButton + UpgradePopupShown (oferta exclusiva de R$ 27,90 por R$ 19,90) e abre o Popup
@@ -167,7 +216,7 @@ export default function App() {
       offered_materials: KIT_OPTIONS.premium.materialsCount,
       normal_price: UPSELL_MODAL_CONTENT.premiumComparison.normalPriceNumeric,
       offered_price: UPSELL_MODAL_CONTENT.premiumComparison.priceNumeric,
-      price_difference: 10.0,
+      price_difference: POPUP_PRICE_DIFF,
     });
     setIsUpsellModalOpen(true);
   }, []);
@@ -231,8 +280,12 @@ export default function App() {
         checkout_origin: sourceSection,
         checkout_url: CAKTO_PREMIUM_URL,
       });
-      window.setTimeout(() => {
+      if (directCheckoutTimerRef.current !== null) {
+        window.clearTimeout(directCheckoutTimerRef.current);
+      }
+      directCheckoutTimerRef.current = window.setTimeout(() => {
         directCheckoutLockRef.current = false;
+        directCheckoutTimerRef.current = null;
       }, 800);
     },
     []
@@ -322,38 +375,31 @@ export default function App() {
                   className="mt-1.5 w-full max-w-[420px] grid grid-cols-6 gap-1"
                   aria-label="Amostra ilustrativa dos materiais do Planner 2027"
                 >
-                  {HERO_MOCKUP_PREVIEWS.map((preview) => {
-                    const previewSources = getResponsiveImageSources(preview.image, {
-                      suffix: '280w',
-                      widthDescriptor: '280w',
-                      fullWidthDescriptor: '424w',
-                    });
-                    return (
-                      <div
-                        key={`mob-${preview.id}`}
-                        className="bg-white rounded-[8px] border border-[#FCE8F1] p-1 flex flex-col items-center text-center"
-                      >
-                        <div className="w-full aspect-[4/5] rounded-[4px] bg-[#FFF6FA] flex items-center justify-center overflow-hidden">
-                          <picture className="w-full h-full flex items-center justify-center">
-                            <source type="image/avif" srcSet={previewSources.avifSrcSet} sizes="15vw" />
-                            <source type="image/webp" srcSet={previewSources.webpSrcSet} sizes="15vw" />
-                            <img
-                              src={previewSources.fallbackWebp}
-                              alt={preview.label}
-                              width={64}
-                              height={80}
-                              loading="lazy"
-                              decoding="async"
-                              className="w-full h-full object-contain block"
-                            />
-                          </picture>
-                        </div>
-                        <span className="mt-0.5 font-display font-semibold text-[8.5px] text-[#29202A] leading-[1.1] line-clamp-1">
-                          {preview.label}
-                        </span>
+                  {HERO_PREVIEW_SOURCES.map((preview) => (
+                    <div
+                      key={`mob-${preview.id}`}
+                      className="bg-white rounded-[8px] border border-[#FCE8F1] p-1 flex flex-col items-center text-center"
+                    >
+                      <div className="w-full aspect-[4/5] rounded-[4px] bg-[#FFF6FA] flex items-center justify-center overflow-hidden">
+                        <picture className="w-full h-full flex items-center justify-center">
+                          <source type="image/avif" srcSet={preview.sources.avifSrcSet} sizes="15vw" />
+                          <source type="image/webp" srcSet={preview.sources.webpSrcSet} sizes="15vw" />
+                          <img
+                            src={preview.sources.fallbackWebp}
+                            alt={preview.label}
+                            width={64}
+                            height={80}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-contain block"
+                          />
+                        </picture>
                       </div>
-                    );
-                  })}
+                      <span className="mt-0.5 font-display font-semibold text-[8.5px] text-[#29202A] leading-[1.1] line-clamp-1">
+                        {preview.label}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -467,38 +513,31 @@ export default function App() {
                 className="mt-3 w-full grid grid-cols-6 gap-2"
                 aria-label="Composição real dos materiais do Planner 2027"
               >
-                {HERO_MOCKUP_PREVIEWS.map((preview) => {
-                  const previewSources = getResponsiveImageSources(preview.image, {
-                    suffix: '280w',
-                    widthDescriptor: '280w',
-                    fullWidthDescriptor: '424w',
-                  });
-                  return (
-                    <div
-                      key={`desk-${preview.id}`}
-                      className="bg-white rounded-[12px] border border-[#FCE8F1] p-1.5 shadow-2xs flex flex-col items-center text-center"
-                    >
-                      <div className="w-full aspect-[4/5] rounded-[6px] bg-[#FFF6FA] flex items-center justify-center overflow-hidden p-0.5">
-                        <picture className="w-full h-full flex items-center justify-center">
-                          <source type="image/avif" srcSet={previewSources.avifSrcSet} sizes="90px" />
-                          <source type="image/webp" srcSet={previewSources.webpSrcSet} sizes="90px" />
-                          <img
-                            src={previewSources.fallbackWebp}
-                            alt={preview.label}
-                            width={90}
-                            height={112}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full object-contain block"
-                          />
-                        </picture>
-                      </div>
-                      <span className="mt-1 font-display font-semibold text-[10px] text-[#29202A] leading-tight line-clamp-2">
-                        {preview.label}
-                      </span>
+                {HERO_PREVIEW_SOURCES.map((preview) => (
+                  <div
+                    key={`desk-${preview.id}`}
+                    className="bg-white rounded-[12px] border border-[#FCE8F1] p-1.5 shadow-2xs flex flex-col items-center text-center"
+                  >
+                    <div className="w-full aspect-[4/5] rounded-[6px] bg-[#FFF6FA] flex items-center justify-center overflow-hidden p-0.5">
+                      <picture className="w-full h-full flex items-center justify-center">
+                        <source type="image/avif" srcSet={preview.sources.avifSrcSet} sizes="90px" />
+                        <source type="image/webp" srcSet={preview.sources.webpSrcSet} sizes="90px" />
+                        <img
+                          src={preview.sources.fallbackWebp}
+                          alt={preview.label}
+                          width={90}
+                          height={112}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-contain block"
+                        />
+                      </picture>
                     </div>
-                  );
-                })}
+                    <span className="mt-1 font-display font-semibold text-[10px] text-[#29202A] leading-tight line-clamp-2">
+                      {preview.label}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -561,56 +600,49 @@ export default function App() {
             </div>
 
             <div className="mt-7 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {PRODUCT_DEMO_ITEMS.map((demo) => {
-                const demoSources = getResponsiveImageSources(demo.image, {
-                  suffix: '280w',
-                  widthDescriptor: '280w',
-                  fullWidthDescriptor: '424w',
-                });
-                return (
-                  <div
-                    key={demo.id}
-                    className="bg-white rounded-[22px] border border-[#FCE8F1] p-4 sm:p-5 flex flex-col justify-between shadow-[0_8px_24px_rgba(240,21,121,0.05)]"
-                  >
-                    <div>
-                      <div className="relative w-full h-[200px] sm:h-[220px] rounded-[16px] bg-[#FFF6FA] border border-[#FCE8F1] p-3 flex items-center justify-center overflow-hidden">
-                        <picture className="w-full h-full flex items-center justify-center">
-                          <source
-                            type="image/avif"
-                            srcSet={demoSources.avifSrcSet}
-                            sizes="(max-width: 640px) 84vw, 320px"
-                          />
-                          <source
-                            type="image/webp"
-                            srcSet={demoSources.webpSrcSet}
-                            sizes="(max-width: 640px) 84vw, 320px"
-                          />
-                          <img
-                            src={demoSources.fallbackWebp}
-                            alt={`${demo.number} — ${demo.name}`}
-                            width={280}
-                            height={350}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full object-contain block"
-                          />
-                        </picture>
-                        <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/95 border border-[#FCE8F1] px-2.5 py-1 text-[11px] font-display font-bold text-[#F01579] shadow-2xs">
-                          {MATERIAL_ICONS[demo.id]}
-                          <span>{demo.number}</span>
-                        </span>
-                      </div>
-
-                      <h3 className="mt-4 font-display font-bold text-[16px] sm:text-[17.5px] text-[#29202A] leading-snug uppercase">
-                        <span className="text-[#F01579]">{demo.number}</span> — {demo.name}
-                      </h3>
-                      <p className="mt-1.5 text-[14px] sm:text-[14.5px] text-[#534656] leading-[1.5]">
-                        {demo.explanation}
-                      </p>
+              {PRODUCT_DEMO_SOURCES.map((demo) => (
+                <div
+                  key={demo.id}
+                  className="bg-white rounded-[22px] border border-[#FCE8F1] p-4 sm:p-5 flex flex-col justify-between shadow-[0_8px_24px_rgba(240,21,121,0.05)]"
+                >
+                  <div>
+                    <div className="relative w-full h-[200px] sm:h-[220px] rounded-[16px] bg-[#FFF6FA] border border-[#FCE8F1] p-3 flex items-center justify-center overflow-hidden">
+                      <picture className="w-full h-full flex items-center justify-center">
+                        <source
+                          type="image/avif"
+                          srcSet={demo.sources.avifSrcSet}
+                          sizes="(max-width: 640px) 84vw, 320px"
+                        />
+                        <source
+                          type="image/webp"
+                          srcSet={demo.sources.webpSrcSet}
+                          sizes="(max-width: 640px) 84vw, 320px"
+                        />
+                        <img
+                          src={demo.sources.fallbackWebp}
+                          alt={`${demo.number} — ${demo.name}`}
+                          width={280}
+                          height={350}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-contain block"
+                        />
+                      </picture>
+                      <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/95 border border-[#FCE8F1] px-2.5 py-1 text-[11px] font-display font-bold text-[#F01579] shadow-2xs">
+                        {MATERIAL_ICONS[demo.id]}
+                        <span>{demo.number}</span>
+                      </span>
                     </div>
+
+                    <h3 className="mt-4 font-display font-bold text-[16px] sm:text-[17.5px] text-[#29202A] leading-snug uppercase">
+                      <span className="text-[#F01579]">{demo.number}</span> — {demo.name}
+                    </h3>
+                    <p className="mt-1.5 text-[14px] sm:text-[14.5px] text-[#534656] leading-[1.5]">
+                      {demo.explanation}
+                    </p>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
 
             {/* Vitrine Real de Uso (Planner Impresso + Tablet e Celular em Mesa Organizada) */}
@@ -703,13 +735,8 @@ export default function App() {
               </div>
 
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
-                {CAROUSEL_MODELS.map((model, idx) => {
+                {CAROUSEL_MODEL_SOURCES.map((model, idx) => {
                   const isActive = idx === activeCarouselIdx;
-                  const thumbSources = getResponsiveImageSources(model.image, {
-                    suffix: '280w',
-                    widthDescriptor: '280w',
-                    fullWidthDescriptor: '424w',
-                  });
                   return (
                     <button
                       key={model.id}
@@ -717,7 +744,7 @@ export default function App() {
                       onClick={() => setActiveCarouselIdx(idx)}
                       aria-label={`Selecionar modelo ${idx + 1}: ${model.title}`}
                       aria-current={isActive ? 'true' : undefined}
-                      className={`group rounded-[14px] p-2 border text-center transition-all cursor-pointer flex flex-col items-center ${
+                      className={`group rounded-[14px] p-2 border text-center transition-colors cursor-pointer flex flex-col items-center ${
                         isActive
                           ? 'bg-[#FCE8F1]/60 border-[#F01579] ring-2 ring-[#F01579]/20'
                           : 'bg-[#FFF6FA] border-[#FCE8F1] hover:border-[#F01579]/50'
@@ -725,10 +752,10 @@ export default function App() {
                     >
                       <div className="w-full aspect-[4/5] rounded-[8px] bg-white p-1 flex items-center justify-center overflow-hidden">
                         <picture className="w-full h-full flex items-center justify-center">
-                          <source type="image/avif" srcSet={thumbSources.avifSrcSet} sizes="120px" />
-                          <source type="image/webp" srcSet={thumbSources.webpSrcSet} sizes="120px" />
+                          <source type="image/avif" srcSet={model.sources.avifSrcSet} sizes="120px" />
+                          <source type="image/webp" srcSet={model.sources.webpSrcSet} sizes="120px" />
                           <img
-                            src={thumbSources.fallbackWebp}
+                            src={model.sources.fallbackWebp}
                             alt={model.title}
                             width={120}
                             height={150}
@@ -800,7 +827,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* 6. SEÇÃO DE OFERTA DOS DOIS PLANOS (KIT BÁSICO R$ 9,90 E KIT PREMIUM R$ 19,90) */}
+        {/* 6. SEÇÃO DE OFERTA DOS DOIS PLANOS (KIT BÁSICO R$ 9,90 E KIT PREMIUM R$ 27,90) */}
         <section
           id="escolha-seu-kit"
           className="cv-section w-full bg-[#FFF6FA] py-[48px] sm:py-[76px] px-[14px] sm:px-[18px] border-b border-[#FCE8F1]"
@@ -882,7 +909,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* CARD 2: PLANO PREMIUM — R$ 19,90 (250 MATERIAIS DIGITAIS — MAIS COMPLETO) */}
+              {/* CARD 2: PLANO PREMIUM — R$ 27,90 (250 MATERIAIS DIGITAIS — MAIS COMPLETO) */}
               <div className="relative bg-gradient-to-b from-[#FCE8F1]/60 via-white to-white rounded-[26px] border-2 border-[#F01579] p-5 sm:p-8 flex flex-col justify-between shadow-[0_18px_46px_rgba(240,21,121,0.16)] mt-2 md:mt-0">
                 {/* Selo Superior: MAIS COMPLETO */}
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -991,54 +1018,47 @@ export default function App() {
               </div>
 
               <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {BONUS_ITEMS.map((bonus) => {
-                  const bonusSources = getResponsiveImageSources(bonus.image, {
-                    suffix: '280w',
-                    widthDescriptor: '280w',
-                    fullWidthDescriptor: '424w',
-                  });
-                  return (
-                    <div
-                      key={bonus.number}
-                      className="rounded-[16px] bg-[#FFF6FA] border border-[#FCE8F1] p-2.5 flex flex-col justify-between text-center"
-                    >
-                      <div>
-                        <div className="w-full aspect-[3/4] rounded-[10px] bg-white border border-[#FCE8F1] p-1.5 flex items-center justify-center overflow-hidden">
-                          <picture className="w-full h-full flex items-center justify-center">
-                            <source
-                              type="image/avif"
-                              srcSet={bonusSources.avifSrcSet}
-                              sizes="(max-width: 640px) 44vw, 180px"
-                            />
-                            <source
-                              type="image/webp"
-                              srcSet={bonusSources.webpSrcSet}
-                              sizes="(max-width: 640px) 44vw, 180px"
-                            />
-                            <img
-                              src={bonusSources.fallbackWebp}
-                              alt={`Bônus ${bonus.number} — ${bonus.title}`}
-                              width={180}
-                              height={240}
-                              loading="lazy"
-                              decoding="async"
-                              className="w-full h-full object-contain block"
-                            />
-                          </picture>
-                        </div>
-                        <span className="mt-2 inline-block rounded-full bg-[#FCE8F1] px-2 py-0.5 font-display font-bold text-[9.5px] text-[#F01579] uppercase">
-                          BÔNUS {bonus.number}
-                        </span>
-                        <h4 className="mt-1 font-display font-bold text-[12px] text-[#29202A] leading-tight uppercase">
-                          {bonus.title}
-                        </h4>
+                {BONUS_ITEM_SOURCES.map((bonus) => (
+                  <div
+                    key={bonus.number}
+                    className="rounded-[16px] bg-[#FFF6FA] border border-[#FCE8F1] p-2.5 flex flex-col justify-between text-center"
+                  >
+                    <div>
+                      <div className="w-full aspect-[3/4] rounded-[10px] bg-white border border-[#FCE8F1] p-1.5 flex items-center justify-center overflow-hidden">
+                        <picture className="w-full h-full flex items-center justify-center">
+                          <source
+                            type="image/avif"
+                            srcSet={bonus.sources.avifSrcSet}
+                            sizes="(max-width: 640px) 44vw, 180px"
+                          />
+                          <source
+                            type="image/webp"
+                            srcSet={bonus.sources.webpSrcSet}
+                            sizes="(max-width: 640px) 44vw, 180px"
+                          />
+                          <img
+                            src={bonus.sources.fallbackWebp}
+                            alt={`Bônus ${bonus.number} — ${bonus.title}`}
+                            width={180}
+                            height={240}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-contain block"
+                          />
+                        </picture>
                       </div>
-                      <p className="mt-1 text-[11px] text-[#534656] leading-snug">
-                        {bonus.description}
-                      </p>
+                      <span className="mt-2 inline-block rounded-full bg-[#FCE8F1] px-2 py-0.5 font-display font-bold text-[9.5px] text-[#F01579] uppercase">
+                        BÔNUS {bonus.number}
+                      </span>
+                      <h4 className="mt-1 font-display font-bold text-[12px] text-[#29202A] leading-tight uppercase">
+                        {bonus.title}
+                      </h4>
                     </div>
-                  );
-                })}
+                    <p className="mt-1 text-[11px] text-[#534656] leading-snug">
+                      {bonus.description}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

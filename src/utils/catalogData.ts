@@ -35,7 +35,6 @@ export interface BonusItem {
   title: string;
   benefitTag: string;
   description: string;
-  originalPrice?: string;
   image: string;
 }
 
@@ -67,14 +66,10 @@ export interface KitOption {
   materialsCount: number;
   idealFor: string;
   badge?: string;
-  oldPrice?: string;
   price: string;
   priceNumeric: number;
-  savingsText?: string;
   paymentNote: string;
-  highlightFeature?: string;
   includedFeatures: string[];
-  excludedFeatures?: string[];
   bonuses?: string[];
   ctaLabel: string;
   checkoutUrl: string;
@@ -194,6 +189,9 @@ export function dispatchFunnelTrackingEvent(
 
     if (!Array.isArray(win.__plannerFunnelEvents)) {
       win.__plannerFunnelEvents = [];
+    }
+    if (win.__plannerFunnelEvents.length >= 50) {
+      win.__plannerFunnelEvents.shift();
     }
     win.__plannerFunnelEvents.push(record);
 
@@ -420,13 +418,6 @@ export function getResponsiveImageSources(
   };
 }
 
-export function formatBrazilianDate(date: Date): string {
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const year = date.getUTCFullYear();
-  return `${day}/${month}/${year}`;
-}
-
 export function calculatePriceDifference(premiumPrice: number, basicPrice: number): number {
   if (premiumPrice <= basicPrice) return 0;
   return Number((premiumPrice - basicPrice).toFixed(2));
@@ -451,31 +442,6 @@ export function getNextCarouselIndex(
     return (currentIndex + 1) % total;
   }
   return (currentIndex - 1 + total) % total;
-}
-
-export function ensureWritableWindowFetch(target: Record<string, unknown>): boolean {
-  try {
-    let currentFetch = typeof target.fetch === 'function' ? target.fetch : undefined;
-    const desc = Object.getOwnPropertyDescriptor(target, 'fetch');
-    if (desc && desc.configurable === false) {
-      return false;
-    }
-    Object.defineProperty(target, 'fetch', {
-      configurable: true,
-      enumerable: true,
-      get() {
-        return currentFetch;
-      },
-      set(fn: unknown) {
-        if (typeof fn === 'function') {
-          currentFetch = fn;
-        }
-      },
-    });
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 export const PAIN_POINTS: PainPointItem[] = [

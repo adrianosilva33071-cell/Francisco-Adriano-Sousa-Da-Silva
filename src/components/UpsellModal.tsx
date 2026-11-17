@@ -24,6 +24,9 @@ const POPUP_HERO_SOURCES = getResponsiveImageSources(HERO_PLANNER_IMAGE, {
   fullWidthDescriptor: '1272w',
 });
 
+const ACCEPT_RESOLUTION = resolveUpsellAction('accept', CAKTO_PREMIUM_UPSELL_URL);
+const DECLINE_RESOLUTION = resolveUpsellAction('decline', CAKTO_PREMIUM_UPSELL_URL);
+
 export function UpsellModal({
   isOpen,
   locationSearch = '',
@@ -32,32 +35,36 @@ export function UpsellModal({
   onDeclineUpgrade,
 }: UpsellModalProps) {
   const redirectLockRef = useRef(false);
+  const closeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       redirectLockRef.current = false;
     }
+    return () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+    };
   }, [isOpen]);
-
-  const acceptResolution = resolveUpsellAction('accept', CAKTO_PREMIUM_UPSELL_URL);
-  const declineResolution = resolveUpsellAction('decline', CAKTO_PREMIUM_UPSELL_URL);
 
   const acceptCheckoutHref = useMemo(
     () =>
       buildCheckoutUrlWithTracking(
-        acceptResolution.targetUrl ?? CAKTO_PREMIUM_UPSELL_URL,
+        ACCEPT_RESOLUTION.targetUrl ?? CAKTO_PREMIUM_UPSELL_URL,
         locationSearch
       ),
-    [acceptResolution.targetUrl, locationSearch]
+    [locationSearch]
   );
 
   const declineCheckoutHref = useMemo(
     () =>
       buildCheckoutUrlWithTracking(
-        declineResolution.targetUrl ?? CAKTO_BASICO_URL,
+        DECLINE_RESOLUTION.targetUrl ?? CAKTO_BASICO_URL,
         locationSearch
       ),
-    [declineResolution.targetUrl, locationSearch]
+    [locationSearch]
   );
 
   if (!isOpen) return null;
@@ -68,8 +75,8 @@ export function UpsellModal({
       return;
     }
     redirectLockRef.current = true;
-    onDeclineUpgrade(declineResolution.kitName, declineResolution.priceNumeric);
-    window.setTimeout(() => {
+    onDeclineUpgrade(DECLINE_RESOLUTION.kitName, DECLINE_RESOLUTION.priceNumeric);
+    closeTimerRef.current = window.setTimeout(() => {
       onClose();
     }, 150);
   };
@@ -80,8 +87,8 @@ export function UpsellModal({
       return;
     }
     redirectLockRef.current = true;
-    onAcceptUpgrade(acceptResolution.kitName, acceptResolution.priceNumeric);
-    window.setTimeout(() => {
+    onAcceptUpgrade(ACCEPT_RESOLUTION.kitName, ACCEPT_RESOLUTION.priceNumeric);
+    closeTimerRef.current = window.setTimeout(() => {
       onClose();
     }, 150);
   };
@@ -146,7 +153,7 @@ export function UpsellModal({
 
         {/* Mockup Demonstrativo da Coleção Premium */}
         <div className="mt-2.5 flex items-center gap-3 rounded-[16px] bg-[#FFF6FA] border border-[#FCE8F1] p-2.5 text-left">
-          <div className="w-[96px] sm:w-[116px] aspect-[1272/830] rounded-[10px] overflow-hidden border border-[#FCE8F1] bg-white shrink-0">
+          <div className="w-[96px] sm:w-[116px] aspect-[16/9] rounded-[10px] overflow-hidden border border-[#FCE8F1] bg-white shrink-0">
             <picture>
               <source type="image/avif" srcSet={POPUP_HERO_SOURCES.avifSrcSet} sizes="120px" />
               <source type="image/webp" srcSet={POPUP_HERO_SOURCES.webpSrcSet} sizes="120px" />
@@ -154,7 +161,7 @@ export function UpsellModal({
                 src={POPUP_HERO_SOURCES.fallbackWebp}
                 alt="Mockup da Coleção Kit Premium — 250 materiais digitais"
                 width={240}
-                height={156}
+                height={135}
                 loading="eager"
                 decoding="async"
                 className="w-full h-full object-cover block"
