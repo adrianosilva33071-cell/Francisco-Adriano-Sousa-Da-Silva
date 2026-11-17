@@ -8,8 +8,8 @@
 html {
   scroll-behavior: smooth;
   font-family: "Poppins", system-ui, -apple-system, sans-serif;
-  color: #29202A;
-  background-color: #FFF6FA;
+  color: #251B2B;
+  background-color: #FFF9F6;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -28,7 +28,7 @@ button {
 /* Renderização sob demanda para seções abaixo da primeira dobra em celulares simples */
 .cv-section {
   content-visibility: auto;
-  contain-intrinsic-size: auto 620px;
+  contain-intrinsic-size: auto 560px;
 }
 
 /* Safe-area support para aparelhos com barra inferior / notch */
@@ -37,7 +37,7 @@ button {
 }
 
 .footer-safe-space {
-  padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 768px) {
@@ -63,7 +63,7 @@ button {
 
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid #F01579;
+  outline: 2px solid #D83A78;
   outline-offset: 2px;
 }
 

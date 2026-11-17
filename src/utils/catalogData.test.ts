@@ -322,24 +322,71 @@ test('strategic upgrade popup content and resolveUpsellAction handle decline (R$
   assert.equal(rejectedSameAsNormalPremium.targetUrl, null);
 });
 
-test('index.html and installSafeFetchProxy use Proxy + descriptor guard without overwriting window.fetch directly', async () => {
+test('index.html has no duplicate standalone Meta Pixel and installSafeFetchProxy coordinates UTMify + Meta Pixel deduplication', async () => {
   const html = fs.readFileSync(path.resolve('index.html'), 'utf-8');
   assert.equal(/window\.fetch\s*=(?!=)/.test(html), false, 'index.html must never overwrite window.fetch');
   assert.equal(/globalThis\.fetch\s*=(?!=)/.test(html), false, 'index.html must never overwrite globalThis.fetch');
   assert.equal(html.includes('new Proxy('), true, 'index.html must use Proxy wrapper');
-  assert.equal(html.includes("fbq('init', '2206669040218715')"), true);
+  // Standalone Meta Pixel snippet must be removed so UTMify is the sole manager of Meta Pixel 2206669040218715
+  assert.equal(html.includes("fbq('init', '2206669040218715')"), false);
+  assert.equal(html.includes('https://www.facebook.com/tr?id=2206669040218715'), false);
+  // Official UTMify scripts (utms/latest.js and pixel/pixel.js) must be preserved
   assert.equal(html.includes('var w_6wr=atob('), true);
   assert.equal(html.includes('var s_bg7=atob('), true);
 
   // Simulate _aistudio-iframe.js defining getter-only fetch after installSafeFetchProxy
   const origDefine = Object.defineProperty;
+  const origWindow = (globalThis as Record<string, unknown>).window;
   try {
     const mockWin: Record<string, unknown> = {
+      pixelId: '6afc2b5608a5363c6845f95f',
       fetch: async (url: RequestInfo | URL) =>
         new Response(JSON.stringify({ url: String(url), ok: true }), { status: 200 }),
     };
+    (globalThis as Record<string, unknown>).window = mockWin;
 
     assert.equal(installSafeFetchProxy(mockWin), true);
+
+    // Before UTMify initializes fbq, mockWin.fbq must be undefined (so MetaPixelDetector detects 0 foreign pixels)
+    assert.equal(mockWin.fbq, undefined);
+
+    // Simulate UTMify PixelUtmify.init assigning window.fbq
+    const rawFbqCalls: unknown[][] = [];
+    mockWin.fbq = (...args: unknown[]) => {
+      rawFbqCalls.push(args);
+    };
+
+    // Simulate Kit Básico (R$ 9,90) InitiateCheckout enrichment with UTMify's 24-hex eventID
+    dispatchFunnelTrackingEvent('InitiateCheckout', {
+      content_name: 'KIT BÁSICO (100 MATERIAIS)',
+      content_ids: ['kit_basico_100'],
+      content_type: 'product',
+      value: 9.9,
+      checkout_url: CAKTO_BASICO_URL,
+    });
+    // dispatchFunnelTrackingEvent must NOT fire a duplicate non-UTMify fbq call when UTMify pixelId is active
+    assert.equal(rawFbqCalls.length, 0);
+
+    // Now UTMify's Tracker.track("InitiateCheckout") calls window.fbq("track", "InitiateCheckout", {}, { eventID: "69ba9a88c07c92a49bf37eb3" })
+    (mockWin.fbq as (...args: unknown[]) => void)(
+      'track',
+      'InitiateCheckout',
+      {},
+      { eventID: '69ba9a88c07c92a49bf37eb3' }
+    );
+    assert.equal(rawFbqCalls.length, 1);
+    assert.equal(rawFbqCalls[0][0], 'track');
+    assert.equal(rawFbqCalls[0][1], 'InitiateCheckout');
+    assert.deepEqual(rawFbqCalls[0][2], {
+      currency: 'BRL',
+      content_name: 'KIT BÁSICO (100 MATERIAIS)',
+      content_ids: ['kit_basico_100'],
+      content_type: 'product',
+      value: 9.9,
+      num_items: 1,
+      checkout_url: CAKTO_BASICO_URL,
+    });
+    assert.deepEqual(rawFbqCalls[0][3], { eventID: '69ba9a88c07c92a49bf37eb3' });
 
     // Simulate _aistudio-iframe.js calling Object.defineProperty(window, 'fetch', { get() { ... } }) without a setter
     const iframeFetch = async (url: RequestInfo | URL) => {
@@ -356,10 +403,20 @@ test('index.html and installSafeFetchProxy use Proxy + descriptor guard without 
 
     // Verify UTMify localhost tracking fallback works via Proxy without throwing
     const activeFetch = mockWin.fetch as typeof fetch;
-    const utmifyRes = await activeFetch('http://localhost:3001/tracking/v1/events');
-    const utmifyJson = (await utmifyRes.json()) as { ok: boolean; lead: Record<string, unknown> };
+    const utmifyRes = await activeFetch('http://localhost:3001/tracking/v1/events', {
+      method: 'POST',
+      body: JSON.stringify({ type: 'InitiateCheckout', eventId: '69ba9a88c07c92a49bf37eb3' }),
+    });
+    const utmifyJson = (await utmifyRes.json()) as {
+      ok: boolean;
+      lead: { _id: string; metaPixelIds: string[] };
+      event: { _id: string; type: string };
+    };
     assert.equal(utmifyRes.status, 200);
     assert.equal(utmifyJson.ok, true);
+    assert.deepEqual(utmifyJson.lead.metaPixelIds, ['2206669040218715']);
+    assert.equal(utmifyJson.event._id, '69ba9a88c07c92a49bf37eb3');
+    assert.equal(utmifyJson.event.type, 'InitiateCheckout');
 
     // Verify normal API calls pass through untouched
     const apiRes = await activeFetch('https://api.ipify.org/?format=json');
@@ -372,6 +429,11 @@ test('index.html and installSafeFetchProxy use Proxy + descriptor guard without 
     });
   } finally {
     Object.defineProperty = origDefine;
+    if (origWindow === undefined) {
+      delete (globalThis as Record<string, unknown>).window;
+    } else {
+      (globalThis as Record<string, unknown>).window = origWindow;
+    }
   }
 });
 

@@ -55,7 +55,7 @@ export function UpsellModal({
         ACCEPT_RESOLUTION.targetUrl ?? CAKTO_PREMIUM_UPSELL_URL,
         locationSearch
       ),
-    [locationSearch]
+    [locationSearch, isOpen]
   );
 
   const declineCheckoutHref = useMemo(
@@ -64,7 +64,7 @@ export function UpsellModal({
         DECLINE_RESOLUTION.targetUrl ?? CAKTO_BASICO_URL,
         locationSearch
       ),
-    [locationSearch]
+    [locationSearch, isOpen]
   );
 
   if (!isOpen) return null;
@@ -122,7 +122,12 @@ export function UpsellModal({
             onClick={handleDeclineClick}
             aria-label="Fechar popup e continuar com o Kit Básico por R$ 9,90"
             data-testid="upsell-close-x"
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#FFF6FA] hover:bg-[#FCE8F1] active:scale-95 border border-[#FCE8F1] text-[#29202A] hover:text-[#F01579] flex items-center justify-center shrink-0 transition-transform cursor-pointer"
+            data-checkout-plan="basico"
+            data-checkout-name={DECLINE_RESOLUTION.kitName}
+            data-checkout-id="kit_basico_100"
+            data-checkout-value={String(DECLINE_RESOLUTION.priceNumeric)}
+            data-checkout-currency="BRL"
+            className="utmify-ic-btn utmify-ic-basico w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#FFF6FA] hover:bg-[#FCE8F1] active:scale-95 border border-[#FCE8F1] text-[#29202A] hover:text-[#F01579] flex items-center justify-center shrink-0 transition-transform cursor-pointer"
           >
             <X className="w-5 h-5 stroke-[2.5]" />
           </a>

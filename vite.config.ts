@@ -20,8 +20,73 @@ function utmifyLocalDevPlugin(): Plugin {
           res.end();
           return;
         }
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true, lead: {} }));
+
+        const chunks: Buffer[] = [];
+        req.on('data', (chunk: Buffer) => chunks.push(chunk));
+        req.on('end', () => {
+          const rawBody = Buffer.concat(chunks).toString('utf-8');
+          let parsed: Record<string, unknown> = {};
+          try {
+            if (rawBody) {
+              parsed = JSON.parse(rawBody) as Record<string, unknown>;
+            }
+          } catch {
+            // Ignore malformed JSON
+          }
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+
+          if (req.method === 'PUT' && req.url?.includes('/lead')) {
+            res.end(JSON.stringify(true));
+            return;
+          }
+
+          const eventId =
+            typeof parsed.eventId === 'string' && parsed.eventId
+              ? parsed.eventId
+              : '69ba9a88c07c92a49bf37eb3';
+          const eventType =
+            typeof parsed.type === 'string' && parsed.type ? parsed.type : 'PageView';
+          const pixelId =
+            typeof parsed.pixelId === 'string' && parsed.pixelId
+              ? parsed.pixelId
+              : '6afc2b5608a5363c6845f95f';
+
+          res.end(
+            JSON.stringify({
+              ok: true,
+              lead: {
+                _id: '6afc2b5608a5363c6845f95f',
+                pixelId,
+                metaPixelIds: ['2206669040218715'],
+                tikTokPixelIds: [],
+                geolocation: {
+                  country: 'BR',
+                  city: 'Sao Paulo',
+                  state: 'SP',
+                },
+              },
+              event: {
+                _id: eventId,
+                clientEventId: eventId,
+                pixelId,
+                leadId: '6afc2b5608a5363c6845f95f',
+                type: eventType,
+                pixelType: 'Meta',
+              },
+              icURLMatch: 'https://pay.cakto.com.br/',
+              icRules: {
+                text: [],
+                css: ['utmify-ic-btn'],
+                url: ['pay.cakto.com.br/'],
+                autoDetect: false,
+              },
+              sendWebEvents: true,
+              sendIc: true,
+              conversionMinIntervalInMinutes: 120,
+            })
+          );
+        });
       });
       mockServer.on('error', () => {
         // Ignore if port 3001 is already in use

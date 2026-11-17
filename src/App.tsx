@@ -10,9 +10,6 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
   FileText,
   Gift,
   Headset,
@@ -27,56 +24,96 @@ import {
   X,
 } from 'lucide-react';
 import {
-  BONUS_ITEMS,
   buildCheckoutUrlWithTracking,
   CAKTO_BASICO_URL,
   CAKTO_PREMIUM_UPSELL_URL,
   CAKTO_PREMIUM_URL,
   calculatePriceDifference,
-  CAROUSEL_MODELS,
   dispatchFunnelTrackingEvent,
-  FAQ_ITEMS,
-  getNextCarouselIndex,
   getResponsiveImageSources,
   GUARANTEE_BADGE_IMAGE,
-  HERO_BADGE_TEXT,
   HERO_MOCKUP_PREVIEWS,
   HERO_PLANNER_IMAGE,
-  HERO_QUICK_BENEFITS,
-  HERO_SUBHEADLINE,
   KIT_OPTIONS,
   LIFESTYLE_PLANNER_IMAGE,
-  PAIN_POINTS,
-  PLAN_COMPARISON_ROWS,
   PRODUCT_DEMO_ITEMS,
-  PROMO_DATE_TEXT,
-  STEP_ITEMS,
   SUPPORT_HIGHLIGHTS,
   toAvifUrl,
   UPSELL_MODAL_CONTENT,
 } from './utils/catalogData';
 import type { LegalModalType } from './components/LegalModal';
+import UpsellModal from './components/UpsellModal';
 
-const UpsellModal = lazy(() => import('./components/UpsellModal'));
 const LegalModal = lazy(() => import('./components/LegalModal'));
 
-const PAIN_ICONS: Record<string, React.ReactNode> = {
-  'semana-tarefas': <ListChecks className="w-5 h-5 text-[#F01579]" />,
-  'esquece-compromissos': <Calendar className="w-5 h-5 text-[#F01579]" />,
-  'metas-depois': <Target className="w-5 h-5 text-[#F01579]" />,
-  'controlar-gastos': <Wallet className="w-5 h-5 text-[#F01579]" />,
-  'falta-planejamento': <Clock className="w-5 h-5 text-[#F01579]" />,
-  'acompanhar-habitos': <HeartHandshake className="w-5 h-5 text-[#F01579]" />,
+const MATERIAL_ICONS: Record<string, React.ReactNode> = {
+  'demo-semanal': <Calendar className="w-4 h-4 text-[#D83A78]" />,
+  'demo-mensal': <CalendarDays className="w-4 h-4 text-[#D83A78]" />,
+  'demo-habitos': <HeartHandshake className="w-4 h-4 text-[#D83A78]" />,
+  'demo-tarefas': <ListChecks className="w-4 h-4 text-[#D83A78]" />,
+  'demo-financeiro': <Wallet className="w-4 h-4 text-[#D83A78]" />,
+  'demo-metas': <Target className="w-4 h-4 text-[#D83A78]" />,
 };
 
-const MATERIAL_ICONS: Record<string, React.ReactNode> = {
-  'demo-semanal': <Calendar className="w-4 h-4 text-[#F01579]" />,
-  'demo-habitos': <HeartHandshake className="w-4 h-4 text-[#F01579]" />,
-  'demo-tarefas': <ListChecks className="w-4 h-4 text-[#F01579]" />,
-  'demo-mensal': <CalendarDays className="w-4 h-4 text-[#F01579]" />,
-  'demo-financeiro': <Wallet className="w-4 h-4 text-[#F01579]" />,
-  'demo-metas': <Target className="w-4 h-4 text-[#F01579]" />,
-};
+const HERO_BENEFITS_LIST: string[] = [
+  'Organize seus dias e compromissos.',
+  'Planeje suas metas e objetivos.',
+  'Acompanhe seus hábitos.',
+  'Organize tarefas e finanças.',
+  'Escolha entre 100 ou 250 materiais digitais.',
+];
+
+interface FunnelFaqItem {
+  id: string;
+  number: string;
+  question: string;
+  answer: string;
+}
+
+const FUNNEL_FAQ_ITEMS: FunnelFaqItem[] = [
+  {
+    id: 'como-recebo',
+    number: '01',
+    question: 'Como recebo meus materiais?',
+    answer:
+      'Os materiais são 100% digitais e o acesso ocorre após a confirmação do pagamento, conforme o sistema de entrega configurado na plataforma.',
+  },
+  {
+    id: 'podem-ser-impressos',
+    number: '02',
+    question: 'Os materiais podem ser impressos?',
+    answer:
+      'Sim. Todos os arquivos da coleção são disponibilizados em formato A4 prontos para imprimir em casa ou em gráfica rápida quantas vezes desejar para uso pessoal, sem exigir máquina de corte.',
+  },
+  {
+    id: 'usar-no-celular',
+    number: '03',
+    question: 'Posso utilizar no celular?',
+    answer:
+      'Sim. Além da opção de imprimir em folha A4, você pode abrir, consultar e utilizar os arquivos digitais diretamente no celular, tablet ou computador.',
+  },
+  {
+    id: 'diferenca-kits',
+    number: '04',
+    question: 'Qual a diferença entre o Básico e o Premium?',
+    answer:
+      'O Kit Básico (R$ 9,90) inclui 100 materiais digitais essenciais para organizar a rotina, tarefas e hábitos. O Kit Premium (R$ 27,90) é a opção mais completa, com 250 materiais digitais e 6 bônus complementares incluídos para planejamento semanal, mensal, metas e controle financeiro.',
+  },
+  {
+    id: 'como-funciona-garantia',
+    number: '05',
+    question: 'Como funciona a garantia de 7 dias?',
+    answer:
+      'Você possui 7 dias de garantia após a compra para conhecer o material com tranquilidade. Caso necessário dentro desse prazo, basta solicitar o reembolso conforme as condições da garantia.',
+  },
+  {
+    id: 'como-acesso-bonus',
+    number: '06',
+    question: 'Como acesso meus bônus?',
+    answer:
+      'Ao escolher o Kit Premium, os 6 bônus complementares são liberados juntamente com os 250 materiais digitais após a confirmação do pagamento, no mesmo ambiente de entrega.',
+  },
+];
 
 const HERO_SOURCES = getResponsiveImageSources(HERO_PLANNER_IMAGE, {
   suffix: '640w',
@@ -108,44 +145,25 @@ const PRODUCT_DEMO_SOURCES = PRODUCT_DEMO_ITEMS.map((demo) => ({
   }),
 }));
 
-const CAROUSEL_MODEL_SOURCES = CAROUSEL_MODELS.map((model) => ({
-  ...model,
-  sources: getResponsiveImageSources(model.image, {
-    suffix: '280w',
-    widthDescriptor: '280w',
-    fullWidthDescriptor: '424w',
-  }),
-}));
-
-const BONUS_ITEM_SOURCES = BONUS_ITEMS.map((bonus) => ({
-  ...bonus,
-  sources: getResponsiveImageSources(bonus.image, {
-    suffix: '280w',
-    widthDescriptor: '280w',
-    fullWidthDescriptor: '424w',
-  }),
-}));
-
 const POPUP_PRICE_DIFF = calculatePriceDifference(
   UPSELL_MODAL_CONTENT.premiumComparison.priceNumeric,
   KIT_OPTIONS.basico.priceNumeric
 );
 
 export default function App() {
-  const [openFaqId, setOpenFaqId] = useState<string | null>('como-recebo');
+  const [openFaqId, setOpenFaqId] = useState<string | null>('diferenca-kits');
   const [isUpsellModalOpen, setIsUpsellModalOpen] = useState<boolean>(false);
   const [activeLegalModal, setActiveLegalModal] = useState<LegalModalType>(null);
-  const [activeCarouselIdx, setActiveCarouselIdx] = useState<number>(0);
   const [showFloatingBar, setShowFloatingBar] = useState<boolean>(false);
+  const [isOfferSectionVisible, setIsOfferSectionVisible] = useState<boolean>(false);
   const [isFloatingBarDismissed, setIsFloatingBarDismissed] = useState<boolean>(false);
   const [locationSearch, setLocationSearch] = useState<string>(() =>
     typeof window !== 'undefined' ? window.location.search : ''
   );
-
-  const touchStartXRef = useRef<number | null>(null);
   const directCheckoutLockRef = useRef<boolean>(false);
   const directCheckoutTimerRef = useRef<number | null>(null);
   const viewContentTrackedRef = useRef<boolean>(false);
+  const offerCardsRef = useRef<HTMLDivElement | null>(null);
 
   const premiumCheckoutHref = useMemo(
     () => buildCheckoutUrlWithTracking(KIT_OPTIONS.premium.checkoutUrl, locationSearch),
@@ -189,13 +207,29 @@ export default function App() {
     }
 
     const onScroll = () => {
-      const shouldShow = window.scrollY > 480;
+      const shouldShow = window.scrollY > 420;
       setShowFloatingBar((prev) => (prev !== shouldShow ? shouldShow : prev));
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
+
+    let observer: IntersectionObserver | null = null;
+    if (typeof IntersectionObserver !== 'undefined' && offerCardsRef.current) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          if (entry) {
+            setIsOfferSectionVisible(entry.isIntersecting);
+          }
+        },
+        { threshold: 0.25 }
+      );
+      observer.observe(offerCardsRef.current);
+    }
+
     return () => {
       window.removeEventListener('scroll', onScroll);
+      observer?.disconnect();
       if (directCheckoutTimerRef.current !== null) {
         window.clearTimeout(directCheckoutTimerRef.current);
         directCheckoutTimerRef.current = null;
@@ -295,73 +329,59 @@ export default function App() {
     setOpenFaqId((prev) => (prev === id ? null : id));
   }, []);
 
-  const handleCarouselStep = useCallback((direction: 'next' | 'prev') => {
-    setActiveCarouselIdx((prev) =>
-      getNextCarouselIndex(prev, CAROUSEL_MODELS.length, direction)
-    );
-  }, []);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartXRef.current = e.touches[0]?.clientX ?? null;
-  }, []);
-
-  const handleTouchEnd = useCallback(
-    (e: React.TouchEvent) => {
-      if (touchStartXRef.current === null) return;
-      const endX = e.changedTouches[0]?.clientX ?? touchStartXRef.current;
-      const deltaX = endX - touchStartXRef.current;
-      if (Math.abs(deltaX) > 36) {
-        handleCarouselStep(deltaX < 0 ? 'next' : 'prev');
-      }
-      touchStartXRef.current = null;
-    },
-    [handleCarouselStep]
-  );
-
-  const currentCarouselModel = CAROUSEL_MODELS[activeCarouselIdx] ?? CAROUSEL_MODELS[0];
-
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFF6FA] text-[#29202A] font-sans antialiased selection:bg-[#FCE8F1] selection:text-[#F01579] overflow-x-hidden">
-      {/* 1. FAIXA SUPERIOR */}
-      <div className="w-full min-h-[38px] sm:min-h-[40px] bg-[#F01579] flex items-center justify-center px-[10px] sm:px-[16px] py-2 border-b border-[#F4C542]/30">
-        <p className="font-display text-white text-[10.5px] min-[360px]:text-[11.5px] sm:text-[13.5px] font-bold tracking-[0.05em] sm:tracking-[0.06em] uppercase text-center leading-none whitespace-nowrap">
-          {PROMO_DATE_TEXT}
+    <div className="min-h-screen flex flex-col bg-[#FFF9F6] text-[#251B2B] font-sans antialiased selection:bg-[#D83A78]/15 selection:text-[#D83A78] overflow-x-hidden">
+      {/* BARRA SUPERIOR DE CONTEXTO */}
+      <header className="w-full min-h-[38px] bg-[#251B2B] flex items-center justify-center px-3 py-1.5 border-b border-[#D83A78]/30">
+        <p className="font-display text-white text-[11px] sm:text-[12.5px] font-bold tracking-[0.06em] uppercase text-center leading-tight">
+          <span>COLEÇÃO DIGITAL • PLANEJAMENTO 2027</span>
+          <span className="hidden min-[420px]:inline text-[#D83A78]"> • </span>
+          <span className="hidden min-[420px]:inline text-white/90">
+            ACESSO DIGITAL APÓS CONFIRMAÇÃO
+          </span>
         </p>
-      </div>
+      </header>
 
       <main className="flex-1">
-        {/* 2. PRIMEIRA DOBRA — TÍTULO, SUBTÍTULO, IMAGENS DOS MATERIAIS, BENEFÍCIOS E OS 2 PLANOS */}
-        <section className="w-full bg-gradient-to-b from-[#FCE8F1] via-[#FFF6FA] to-[#FFFFFF] pt-[14px] sm:pt-[28px] pb-[26px] sm:pb-[48px] px-[12px] sm:px-[18px] overflow-hidden border-b border-[#FCE8F1]">
-          <div className="max-w-[1140px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-center">
-            {/* Coluna Esquerda: Título, Subtítulo, Benefícios e Acesso Rápido aos 2 Planos */}
+        {/* =====================================================================
+            ETAPA 1 — HERO: PROMESSA E DESEJO (PRIMEIRA DOBRA)
+            ===================================================================== */}
+        <section
+          id="inicio"
+          className="w-full bg-gradient-to-b from-[#FFF9F6] via-[#FFFFFF] to-[#FFF9F6] pt-5 sm:pt-10 pb-8 sm:pb-14 px-4 sm:px-6 border-b border-[#251B2B]/10"
+        >
+          <div className="max-w-[1140px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
+            {/* Coluna Esquerda (Desktop) / Empilhamento Vertical (Mobile): Copy, Benefícios e CTA */}
             <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#F4C542] px-3 py-0.5 sm:px-3.5 sm:py-1 shadow-2xs">
-                <Sparkles className="w-3.5 h-3.5 text-[#F4C542] shrink-0" />
-                <span className="font-display font-bold text-[11px] sm:text-[12px] text-[#F01579] tracking-[0.08em] uppercase whitespace-nowrap">
-                  {HERO_BADGE_TEXT}
+              {/* selo superior */}
+              <div className="inline-flex items-center gap-2 rounded-full bg-white border border-[#D83A78]/35 px-3.5 py-1 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-[#D83A78] shrink-0" />
+                <span className="font-display font-bold text-[11px] sm:text-[12px] text-[#D83A78] tracking-[0.06em] uppercase">
+                  COLEÇÃO DIGITAL • PLANEJAMENTO 2027
                 </span>
               </div>
 
-              {/* Título principal (H1) */}
-              <h1 className="mt-2 sm:mt-3 font-display font-bold text-[#29202A] text-[22px] sm:text-[34px] xl:text-[40px] leading-[1.14] tracking-[-0.01em] max-w-[650px] uppercase">
+              {/* título principal */}
+              <h1 className="mt-3 sm:mt-4 font-display font-bold text-[#251B2B] text-[26px] min-[390px]:text-[28px] sm:text-[38px] xl:text-[44px] leading-[1.12] tracking-[-0.015em] max-w-[600px] uppercase">
                 SEU 2027 MAIS ORGANIZADO{' '}
-                <span className="text-[#F01579]">COMEÇA AQUI!</span>
+                <span className="text-[#D83A78]">COMEÇA AQUI.</span>
               </h1>
 
-              {/* Subtítulo */}
-              <p className="mt-1.5 sm:mt-2.5 text-[#4a3d4c] text-[13px] sm:text-[15.5px] leading-[1.45] max-w-[600px]">
-                {HERO_SUBHEADLINE}
+              {/* subtítulo */}
+              <p className="mt-2.5 sm:mt-3.5 text-[#77717A] text-[14.5px] sm:text-[16.5px] leading-[1.55] max-w-[560px]">
+                Tenha em um só lugar ferramentas práticas para organizar sua rotina, planejar seus
+                objetivos, acompanhar seus hábitos e cuidar melhor das suas finanças.
               </p>
 
-              {/* Imagem principal + 6 amostras no Mobile */}
-              <div className="mt-2.5 w-full lg:hidden flex flex-col items-center">
-                <div className="relative w-full max-w-[420px] rounded-[18px] overflow-hidden shadow-[0_10px_26px_rgba(240,21,121,0.14)] border border-[#FCE8F1] bg-white aspect-[16/9]">
+              {/* Imagem do Produto no Mobile (Prioridade Visual após Título e Subtítulo) */}
+              <div className="mt-4 w-full lg:hidden flex flex-col items-center">
+                <div className="relative w-full max-w-[440px] rounded-[20px] overflow-hidden shadow-[0_14px_34px_rgba(37,27,43,0.12)] border border-[#251B2B]/10 bg-white aspect-[16/9]">
                   <picture>
                     <source type="image/avif" srcSet={HERO_SOURCES.avifSrcSet} sizes="92vw" />
                     <source type="image/webp" srcSet={HERO_SOURCES.webpSrcSet} sizes="92vw" />
                     <img
                       src={HERO_SOURCES.fallbackWebp}
-                      alt="Coleção Planner 2027 — Planner impresso em espiral, páginas de planejamento semanal, controle de hábitos, metas e versão digital em tablet e celular"
+                      alt="Kit de Organização e Planejamento 2027 — Coleção Planner 2027 em versão impressa A4, tablet e celular"
                       width={1272}
                       height={715}
                       fetchPriority="high"
@@ -369,21 +389,33 @@ export default function App() {
                       className="w-full h-full object-cover object-center block"
                     />
                   </picture>
+                  <div className="absolute bottom-2.5 right-2.5 rounded-full bg-[#251B2B]/90 backdrop-blur-xs text-white px-3 py-1 font-display font-bold text-[10px] uppercase tracking-wider border border-[#D83A78]/60">
+                    100 OU 250 MATERIAIS DIGITAIS
+                  </div>
                 </div>
 
+                {/* 6 páginas internas reais da coleção no Mobile */}
                 <div
-                  className="mt-1.5 w-full max-w-[420px] grid grid-cols-6 gap-1"
-                  aria-label="Amostra ilustrativa dos materiais do Planner 2027"
+                  className="mt-2 w-full max-w-[440px] grid grid-cols-3 sm:grid-cols-6 gap-1.5"
+                  aria-label="Amostras reais das páginas internas do Kit de Organização e Planejamento 2027"
                 >
                   {HERO_PREVIEW_SOURCES.map((preview) => (
                     <div
                       key={`mob-${preview.id}`}
-                      className="bg-white rounded-[8px] border border-[#FCE8F1] p-1 flex flex-col items-center text-center"
+                      className="bg-white rounded-[10px] border border-[#251B2B]/10 p-1.5 flex items-center gap-1.5 text-left sm:flex-col sm:text-center shadow-2xs"
                     >
-                      <div className="w-full aspect-[4/5] rounded-[4px] bg-[#FFF6FA] flex items-center justify-center overflow-hidden">
+                      <div className="w-8 h-10 sm:w-full sm:h-auto sm:aspect-[4/5] rounded-[4px] bg-[#FFF9F6] flex items-center justify-center overflow-hidden shrink-0">
                         <picture className="w-full h-full flex items-center justify-center">
-                          <source type="image/avif" srcSet={preview.sources.avifSrcSet} sizes="15vw" />
-                          <source type="image/webp" srcSet={preview.sources.webpSrcSet} sizes="15vw" />
+                          <source
+                            type="image/avif"
+                            srcSet={preview.sources.avifSrcSet}
+                            sizes="15vw"
+                          />
+                          <source
+                            type="image/webp"
+                            srcSet={preview.sources.webpSrcSet}
+                            sizes="15vw"
+                          />
                           <img
                             src={preview.sources.fallbackWebp}
                             alt={preview.label}
@@ -395,7 +427,7 @@ export default function App() {
                           />
                         </picture>
                       </div>
-                      <span className="mt-0.5 font-display font-semibold text-[8.5px] text-[#29202A] leading-[1.1] line-clamp-1">
+                      <span className="font-display font-semibold text-[10px] sm:text-[9.5px] text-[#251B2B] leading-[1.15]">
                         {preview.label}
                       </span>
                     </div>
@@ -403,103 +435,61 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Benefícios rápidos da coleção */}
-              <div className="mt-2.5 sm:mt-4 w-full max-w-[560px] grid grid-cols-2 gap-1.5 sm:gap-2">
-                {HERO_QUICK_BENEFITS.map((benefit) => (
-                  <div
+              {/* Lista de Benefícios da Primeira Dobra */}
+              <ul className="mt-4 sm:mt-5 w-full max-w-[540px] space-y-2 text-left">
+                {HERO_BENEFITS_LIST.map((benefit) => (
+                  <li
                     key={benefit}
-                    className="bg-white rounded-[12px] border border-[#FCE8F1] px-2.5 py-1.5 sm:px-3 sm:py-2 flex items-center gap-1.5 text-left shadow-2xs"
+                    className="bg-white rounded-[12px] border border-[#251B2B]/10 px-3.5 py-2.5 flex items-center gap-2.5 shadow-2xs"
                   >
-                    <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#e8faee] text-[#16B83A] flex items-center justify-center shrink-0">
-                      <Check className="w-3 h-3 stroke-[3]" />
+                    <span className="w-5 h-5 rounded-full bg-[#16A34A]/12 text-[#16A34A] flex items-center justify-center shrink-0">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
                     </span>
-                    <span className="font-medium text-[11.5px] sm:text-[12.5px] text-[#29202A] leading-tight">
+                    <span className="font-medium text-[13.5px] sm:text-[15px] text-[#251B2B] leading-snug">
                       {benefit}
                     </span>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
 
-              {/* Botão Principal de Compra na Primeira Dobra (leva à seção dos planos) */}
-              <div className="mt-3 sm:mt-4 w-full max-w-[560px]">
+              {/* Botão Principal da Primeira Dobra (rola suavemente para a seção de escolha dos kits) */}
+              <div className="mt-5 sm:mt-6 w-full max-w-[540px]">
                 <a
                   href="#escolha-seu-kit"
                   data-testid="hero-scroll-plans-cta"
-                  className="font-display inline-flex items-center justify-center gap-2 w-full min-h-[48px] sm:min-h-[54px] rounded-[14px] bg-[#16B83A] hover:bg-[#139e31] active:scale-[0.99] text-white font-bold text-[13.5px] sm:text-[15.5px] uppercase tracking-normal shadow-[0_10px_24px_rgba(22,184,58,0.28)] transition-all cursor-pointer px-4"
+                  className="font-display inline-flex items-center justify-center gap-2.5 w-full min-h-[54px] sm:min-h-[58px] rounded-[14px] bg-[#16A34A] hover:bg-[#15803d] active:scale-[0.99] text-white font-bold text-[15px] sm:text-[16.5px] uppercase tracking-[0.02em] shadow-[0_10px_24px_rgba(22,163,74,0.28)] transition-all cursor-pointer px-6 text-center"
                 >
-                  <ShoppingCart className="w-4.5 h-4.5 shrink-0" />
-                  <span>QUERO ORGANIZAR MEU 2027 • VER PLANOS</span>
-                  <ArrowRight className="w-4 h-4 shrink-0" />
+                  <span>QUERO ORGANIZAR MEU 2027</span>
+                  <ArrowRight className="w-5 h-5 shrink-0" />
                 </a>
-              </div>
 
-              {/* Resumo dos Dois Planos Disponíveis na Primeira Dobra */}
-              <div className="mt-2.5 sm:mt-3 w-full max-w-[560px] grid grid-cols-1 min-[350px]:grid-cols-2 gap-2.5">
-                {/* Mini Card Kit Básico */}
-                <div className="rounded-[16px] bg-white border border-[#FCE8F1] p-2.5 sm:p-3.5 flex flex-col justify-between text-left shadow-2xs">
-                  <div>
-                    <span className="inline-block rounded-full bg-[#FFF6FA] border border-[#FCE8F1] px-2.5 py-0.5 font-display font-bold text-[10px] sm:text-[11px] text-[#29202A] uppercase">
-                      {KIT_OPTIONS.basico.name}
-                    </span>
-                    <p className="mt-1 font-display font-bold text-[12px] sm:text-[13.5px] text-[#29202A]">
-                      100 materiais digitais
-                    </p>
-                    <p className="mt-0.5 font-display font-bold text-[20px] sm:text-[24px] leading-none text-[#29202A] tabular-nums">
-                      {KIT_OPTIONS.basico.price}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    data-testid="hero-basico-cta"
-                    onClick={() => handleBasicPlanClick('hero')}
-                    className="mt-2 font-display inline-flex items-center justify-center w-full min-h-[44px] rounded-[10px] border-2 border-[#16B83A] bg-white hover:bg-[#e8faee] active:scale-[0.99] text-[#16B83A] font-bold text-[11px] sm:text-[11.5px] uppercase transition-colors cursor-pointer px-2 text-center leading-tight"
-                  >
-                    {KIT_OPTIONS.basico.ctaLabel}
-                  </button>
-                </div>
-
-                {/* Mini Card Kit Premium (Mais Completo — R$ 27,90 na compra direta) */}
-                <div className="relative rounded-[16px] bg-white border-2 border-[#F01579] p-2.5 sm:p-3.5 flex flex-col justify-between text-left shadow-[0_8px_22px_rgba(240,21,121,0.12)]">
-                  <div>
-                    <div className="flex flex-wrap items-center justify-between gap-1">
-                      <span className="inline-block rounded-full bg-[#FCE8F1] px-2 py-0.5 font-display font-bold text-[10px] sm:text-[11px] text-[#F01579] uppercase whitespace-nowrap">
-                        {KIT_OPTIONS.premium.name}
-                      </span>
-                      <span className="inline-block rounded-full bg-[#F4C542] px-1.5 py-0.5 font-display font-bold text-[8.5px] sm:text-[9px] text-[#29202A] uppercase whitespace-nowrap">
-                        {KIT_OPTIONS.premium.badge}
-                      </span>
-                    </div>
-                    <p className="mt-1 font-display font-bold text-[12px] sm:text-[13.5px] text-[#F01579]">
-                      250 materiais + 6 bônus
-                    </p>
-                    <p className="mt-0.5 font-display font-bold text-[20px] sm:text-[24px] leading-none text-[#16B83A] tabular-nums">
-                      {KIT_OPTIONS.premium.price}
-                    </p>
-                  </div>
-                  <a
-                    href={premiumCheckoutHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-testid="hero-premium-cta"
-                    onClick={(e) => handleDirectPremiumClick(e, 'hero')}
-                    className="mt-2 font-display inline-flex items-center justify-center gap-1 w-full min-h-[44px] rounded-[10px] bg-[#16B83A] hover:bg-[#139e31] active:scale-[0.99] text-white font-bold text-[11px] sm:text-[11.5px] uppercase shadow-xs transition-all cursor-pointer px-2 text-center leading-tight"
-                  >
-                    <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
-                    <span>{KIT_OPTIONS.premium.ctaLabel}</span>
-                  </a>
+                {/* Indicadores discretos de confiança */}
+                <div className="mt-3 flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-1.5 text-[12px] sm:text-[12.5px] text-[#77717A] font-medium">
+                  <span className="inline-flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-[#D83A78] shrink-0" />
+                    Produto 100% digital
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+                    Pagamento único
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+                    Garantia de 7 dias
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Coluna Direita no Desktop: Mockup Principal + 6 Materiais Ilustrativos */}
+            {/* Coluna Direita no Desktop: Mockup Grande e Nítido + Páginas Internas */}
             <div className="hidden lg:flex lg:col-span-6 flex-col items-center">
-              <div className="relative w-full rounded-[24px] overflow-hidden shadow-[0_14px_36px_rgba(240,21,121,0.14)] border-2 border-[#FCE8F1] bg-white aspect-[16/9]">
+              <div className="relative w-full rounded-[24px] overflow-hidden shadow-[0_18px_42px_rgba(37,27,43,0.14)] border-2 border-[#251B2B]/10 bg-white aspect-[16/9]">
                 <picture>
-                  <source type="image/avif" srcSet={HERO_SOURCES.avifSrcSet} sizes="540px" />
-                  <source type="image/webp" srcSet={HERO_SOURCES.webpSrcSet} sizes="540px" />
+                  <source type="image/avif" srcSet={HERO_SOURCES.avifSrcSet} sizes="560px" />
+                  <source type="image/webp" srcSet={HERO_SOURCES.webpSrcSet} sizes="560px" />
                   <img
                     src={HERO_SOURCES.fallbackWebp}
-                    alt="Coleção Planner 2027 — Planner impresso em espiral, páginas de planejamento semanal, controle de hábitos, metas e versão digital em tablet e celular"
+                    alt="Kit de Organização e Planejamento 2027 — Planner 2027 impresso, páginas internas e uso digital em tablet e celular"
                     width={1272}
                     height={715}
                     fetchPriority="high"
@@ -507,21 +497,32 @@ export default function App() {
                     className="w-full h-full object-cover block"
                   />
                 </picture>
+                <div className="absolute bottom-3.5 right-3.5 rounded-full bg-[#251B2B]/92 backdrop-blur-xs text-white px-4 py-1.5 font-display font-bold text-[11px] uppercase tracking-wider border border-[#D83A78]">
+                  KIT DE ORGANIZAÇÃO E PLANEJAMENTO 2027
+                </div>
               </div>
 
               <div
-                className="mt-3 w-full grid grid-cols-6 gap-2"
-                aria-label="Composição real dos materiais do Planner 2027"
+                className="mt-3.5 w-full grid grid-cols-6 gap-2.5"
+                aria-label="Páginas internas reais do Kit de Organização e Planejamento 2027"
               >
                 {HERO_PREVIEW_SOURCES.map((preview) => (
                   <div
                     key={`desk-${preview.id}`}
-                    className="bg-white rounded-[12px] border border-[#FCE8F1] p-1.5 shadow-2xs flex flex-col items-center text-center"
+                    className="bg-white rounded-[12px] border border-[#251B2B]/10 p-2 shadow-2xs flex flex-col items-center text-center"
                   >
-                    <div className="w-full aspect-[4/5] rounded-[6px] bg-[#FFF6FA] flex items-center justify-center overflow-hidden p-0.5">
+                    <div className="w-full aspect-[4/5] rounded-[6px] bg-[#FFF9F6] flex items-center justify-center overflow-hidden p-0.5">
                       <picture className="w-full h-full flex items-center justify-center">
-                        <source type="image/avif" srcSet={preview.sources.avifSrcSet} sizes="90px" />
-                        <source type="image/webp" srcSet={preview.sources.webpSrcSet} sizes="90px" />
+                        <source
+                          type="image/avif"
+                          srcSet={preview.sources.avifSrcSet}
+                          sizes="90px"
+                        />
+                        <source
+                          type="image/webp"
+                          srcSet={preview.sources.webpSrcSet}
+                          sizes="90px"
+                        />
                         <img
                           src={preview.sources.fallbackWebp}
                           alt={preview.label}
@@ -533,7 +534,7 @@ export default function App() {
                         />
                       </picture>
                     </div>
-                    <span className="mt-1 font-display font-semibold text-[10px] text-[#29202A] leading-tight line-clamp-2">
+                    <span className="mt-1.5 font-display font-semibold text-[10.5px] text-[#251B2B] leading-tight line-clamp-2">
                       {preview.label}
                     </span>
                   </div>
@@ -543,80 +544,46 @@ export default function App() {
           </div>
         </section>
 
-        {/* 3. SEÇÃO — IDENTIFICAÇÃO COM A ROTINA */}
-        <section className="w-full bg-white py-[44px] sm:py-[64px] px-[14px] sm:px-[18px] border-b border-[#FCE8F1]">
-          <div className="max-w-[1060px] mx-auto">
-            <div className="text-center max-w-[700px] mx-auto">
-              <h2 className="font-display font-bold text-[#29202A] text-[22px] sm:text-[32px] md:text-[36px] leading-[1.2] uppercase">
-                SUA ROTINA PRECISA DE{' '}
-                <span className="text-[#F01579]">MAIS ORGANIZAÇÃO?</span>
-              </h2>
-              <p className="mt-2 text-[#534656] text-[15px] sm:text-[17px] font-medium leading-[1.5]">
-                Você se identifica com alguma dessas situações?
-              </p>
-            </div>
-
-            <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-              {PAIN_POINTS.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-[#FFF6FA] rounded-[20px] border border-[#FCE8F1] p-4 sm:p-5 flex items-start gap-3.5 shadow-2xs"
-                >
-                  <div className="w-10 h-10 rounded-[14px] bg-[#FCE8F1] text-[#F01579] flex items-center justify-center shrink-0">
-                    {PAIN_ICONS[item.id] ?? <Calendar className="w-5 h-5 text-[#F01579]" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="font-display font-bold text-[12px] text-[#F01579] tracking-wider">
-                      {item.number}.
-                    </span>
-                    <p className="mt-0.5 font-medium text-[14.5px] sm:text-[15.5px] text-[#29202A] leading-[1.45]">
-                      {item.text}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* 4. SEÇÃO — CONHEÇA OS MATERIAIS DO PLANNER 2027 */}
+        {/* =====================================================================
+            ETAPA 2 — DEMONSTRAÇÃO DO PRODUTO (TANGIBILIDADE DO PRODUTO DIGITAL)
+            ===================================================================== */}
         <section
-          id="conheca-o-planner"
-          className="cv-section w-full bg-[#FFF6FA] py-[46px] sm:py-[70px] px-[14px] sm:px-[18px] border-b border-[#FCE8F1]"
+          id="demonstracao-produto"
+          className="cv-section w-full bg-white py-10 sm:py-16 px-4 sm:px-6 border-b border-[#251B2B]/10"
         >
           <div className="max-w-[1120px] mx-auto">
-            <div className="text-center max-w-[760px] mx-auto">
-              <span className="inline-block rounded-full bg-[#FCE8F1] px-3.5 py-1 text-[#F01579] text-[11.5px] font-bold tracking-[0.08em] uppercase">
-                MATERIAIS PRÁTICOS E PRONTOS PARA IMPRIMIR
+            <div className="text-center max-w-[740px] mx-auto">
+              <span className="inline-block rounded-full bg-[#FFF9F6] border border-[#D83A78]/30 px-3.5 py-1 text-[#D83A78] text-[11px] font-display font-bold tracking-[0.08em] uppercase">
+                CONHEÇA OS MATERIAIS POR DENTRO
               </span>
-              <h2 className="mt-2.5 font-display font-bold text-[#29202A] text-[22px] sm:text-[32px] md:text-[38px] leading-[1.2] uppercase">
-                TUDO PARA ORGANIZAR SUA ROTINA{' '}
-                <span className="text-[#F01579]">EM UM SÓ LUGAR!</span>
+              <h2 className="mt-2.5 font-display font-bold text-[#251B2B] text-[22px] sm:text-[32px] md:text-[36px] leading-[1.18] uppercase">
+                TUDO O QUE VOCÊ PRECISA PARA{' '}
+                <span className="text-[#D83A78]">ORGANIZAR SUA ROTINA.</span>
               </h2>
-              <p className="mt-2.5 text-[#534656] text-[14.5px] sm:text-[16.5px] leading-[1.55]">
-                Conheça as principais ferramentas incluídas na coleção para planejar seus dias,
-                acompanhar hábitos, controlar finanças e organizar suas prioridades.
+              <p className="mt-2 text-[#77717A] text-[14.5px] sm:text-[16.5px] leading-[1.5]">
+                Um conjunto de ferramentas digitais para facilitar o planejamento do seu dia a dia.
               </p>
             </div>
 
+            {/* Galeria Visual Organizada dos 6 Materiais Principais */}
             <div className="mt-7 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {PRODUCT_DEMO_SOURCES.map((demo) => (
-                <div
+                <article
                   key={demo.id}
-                  className="bg-white rounded-[22px] border border-[#FCE8F1] p-4 sm:p-5 flex flex-col justify-between shadow-[0_8px_24px_rgba(240,21,121,0.05)]"
+                  className="bg-[#FFF9F6] rounded-[20px] border border-[#251B2B]/10 p-4 sm:p-5 flex flex-col justify-between shadow-[0_6px_20px_rgba(37,27,43,0.04)]"
                 >
                   <div>
-                    <div className="relative w-full h-[200px] sm:h-[220px] rounded-[16px] bg-[#FFF6FA] border border-[#FCE8F1] p-3 flex items-center justify-center overflow-hidden">
+                    <div className="relative w-full aspect-[4/4.2] sm:h-[210px] rounded-[14px] bg-white border border-[#251B2B]/10 p-3 flex items-center justify-center overflow-hidden">
                       <picture className="w-full h-full flex items-center justify-center">
                         <source
                           type="image/avif"
                           srcSet={demo.sources.avifSrcSet}
-                          sizes="(max-width: 640px) 84vw, 320px"
+                          sizes="(max-width: 640px) 88vw, 320px"
                         />
                         <source
                           type="image/webp"
                           srcSet={demo.sources.webpSrcSet}
-                          sizes="(max-width: 640px) 84vw, 320px"
+                          sizes="(max-width: 640px) 88vw, 320px"
                         />
                         <img
                           src={demo.sources.fallbackWebp}
@@ -628,262 +595,144 @@ export default function App() {
                           className="w-full h-full object-contain block"
                         />
                       </picture>
-                      <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/95 border border-[#FCE8F1] px-2.5 py-1 text-[11px] font-display font-bold text-[#F01579] shadow-2xs">
+                      <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#FFF9F6] border border-[#D83A78]/30 px-2.5 py-0.5 text-[11px] font-display font-bold text-[#D83A78] shadow-2xs">
                         {MATERIAL_ICONS[demo.id]}
                         <span>{demo.number}</span>
                       </span>
                     </div>
 
-                    <h3 className="mt-4 font-display font-bold text-[16px] sm:text-[17.5px] text-[#29202A] leading-snug uppercase">
-                      <span className="text-[#F01579]">{demo.number}</span> — {demo.name}
+                    <h3 className="mt-3.5 font-display font-bold text-[16px] sm:text-[17.5px] text-[#251B2B] leading-snug uppercase">
+                      {demo.name}
                     </h3>
-                    <p className="mt-1.5 text-[14px] sm:text-[14.5px] text-[#534656] leading-[1.5]">
+                    <p className="mt-1.5 text-[13.5px] sm:text-[14.5px] text-[#77717A] leading-[1.5]">
                       {demo.explanation}
                     </p>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
 
-            {/* Vitrine Real de Uso (Planner Impresso + Tablet e Celular em Mesa Organizada) */}
-            <div className="mt-8 bg-white rounded-[24px] border-2 border-[#FCE8F1] p-4 sm:p-6 shadow-[0_10px_28px_rgba(240,21,121,0.06)] grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
-              <div className="lg:col-span-7 rounded-[18px] overflow-hidden border border-[#FCE8F1] bg-[#FFF6FA] aspect-[16/9]">
-                <picture>
-                  <source
-                    type="image/avif"
-                    srcSet={LIFESTYLE_SOURCES.avifSrcSet}
-                    sizes="(max-width: 768px) 92vw, 600px"
-                  />
-                  <source
-                    type="image/webp"
-                    srcSet={LIFESTYLE_SOURCES.webpSrcSet}
-                    sizes="(max-width: 768px) 92vw, 600px"
-                  />
-                  <img
-                    src={LIFESTYLE_SOURCES.fallbackWebp}
-                    alt="Demonstração real de uso do Planner 2027 impresso e encadernado junto ao tablet e celular exibindo os arquivos digitais"
-                    width={960}
-                    height={540}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover block"
-                  />
-                </picture>
-              </div>
-              <div className="lg:col-span-5 text-center lg:text-left">
-                <span className="inline-block rounded-full bg-[#FCE8F1] px-3 py-1 font-display font-bold text-[11px] text-[#F01579] uppercase tracking-wider">
-                  PRATICIDADE NO PAPEL OU NA TELA
-                </span>
-                <h3 className="mt-2 font-display font-bold text-[19px] sm:text-[23px] text-[#29202A] leading-tight uppercase">
-                  IMPRIMA E ENCADERNE OU CONSULTE{' '}
-                  <span className="text-[#F01579]">NO CELULAR E TABLET!</span>
-                </h3>
-                <p className="mt-2 text-[14px] sm:text-[14.5px] text-[#534656] leading-[1.55]">
-                  Os arquivos digitais em alta definição foram desenhados no formato A4 para você
-                  imprimir em casa ou gráfica rápida quantas vezes quiser, mantendo sua mesa e sua
-                  rotina sempre organizadas.
-                </p>
-                <div className="mt-4">
-                  <a
-                    href="#escolha-seu-kit"
-                    className="font-display inline-flex items-center justify-center gap-2 w-full sm:w-auto min-h-[46px] px-5 rounded-[12px] bg-[#16B83A] hover:bg-[#139e31] text-white font-bold text-[13px] uppercase shadow-xs transition-colors"
-                  >
-                    <ShoppingCart className="w-4 h-4 shrink-0" />
-                    <span>ESCOLHER MEU PLANO AGORA</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Galeria Interativa dos Modelos */}
-            <div
-              className="mt-6 bg-white rounded-[22px] border border-[#FCE8F1] p-4 sm:p-6 shadow-2xs"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              aria-label="Navegação pelos modelos reais da Coleção Planner 2027"
-            >
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-4 border-b border-[#FCE8F1]">
-                <div className="text-center sm:text-left">
-                  <p className="font-display font-bold text-[14.5px] sm:text-[16px] text-[#29202A]">
-                    Veja mais modelos reais da coleção Planner 2027:
-                  </p>
-                  <p className="text-[13px] text-[#534656]" aria-live="polite">
-                    Modelo selecionado:{' '}
-                    <strong className="text-[#F01579]">{currentCarouselModel.title}</strong> —{' '}
-                    {currentCarouselModel.benefitText}
-                  </p>
+            {/* Vitrine Prática de Uso: Impressão A4 ou Uso Digital + Fechamento da Seção */}
+            <div className="mt-8 sm:mt-10 bg-[#FFF9F6] rounded-[22px] border border-[#251B2B]/10 p-5 sm:p-7 shadow-[0_10px_28px_rgba(37,27,43,0.05)]">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div className="lg:col-span-6 rounded-[16px] overflow-hidden border border-[#251B2B]/10 bg-white aspect-[16/9]">
+                  <picture>
+                    <source
+                      type="image/avif"
+                      srcSet={LIFESTYLE_SOURCES.avifSrcSet}
+                      sizes="(max-width: 768px) 92vw, 540px"
+                    />
+                    <source
+                      type="image/webp"
+                      srcSet={LIFESTYLE_SOURCES.webpSrcSet}
+                      sizes="(max-width: 768px) 92vw, 540px"
+                    />
+                    <img
+                      src={LIFESTYLE_SOURCES.fallbackWebp}
+                      alt="Uso prático do Kit de Organização e Planejamento 2027 impresso em folha A4 e no tablet ou celular"
+                      width={960}
+                      height={540}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover block"
+                    />
+                  </picture>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleCarouselStep('prev')}
-                    aria-label="Modelo anterior"
-                    className="w-11 h-11 rounded-full bg-[#FFF6FA] hover:bg-[#FCE8F1] active:scale-95 text-[#F01579] border border-[#FCE8F1] flex items-center justify-center transition-transform cursor-pointer"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCarouselStep('next')}
-                    aria-label="Próximo modelo"
-                    className="w-11 h-11 rounded-full bg-[#FFF6FA] hover:bg-[#FCE8F1] active:scale-95 text-[#F01579] border border-[#FCE8F1] flex items-center justify-center transition-transform cursor-pointer"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
-                {CAROUSEL_MODEL_SOURCES.map((model, idx) => {
-                  const isActive = idx === activeCarouselIdx;
-                  return (
-                    <button
-                      key={model.id}
-                      type="button"
-                      onClick={() => setActiveCarouselIdx(idx)}
-                      aria-label={`Selecionar modelo ${idx + 1}: ${model.title}`}
-                      aria-current={isActive ? 'true' : undefined}
-                      className={`group rounded-[14px] p-2 border text-center transition-colors cursor-pointer flex flex-col items-center ${
-                        isActive
-                          ? 'bg-[#FCE8F1]/60 border-[#F01579] ring-2 ring-[#F01579]/20'
-                          : 'bg-[#FFF6FA] border-[#FCE8F1] hover:border-[#F01579]/50'
-                      }`}
-                    >
-                      <div className="w-full aspect-[4/5] rounded-[8px] bg-white p-1 flex items-center justify-center overflow-hidden">
-                        <picture className="w-full h-full flex items-center justify-center">
-                          <source type="image/avif" srcSet={model.sources.avifSrcSet} sizes="120px" />
-                          <source type="image/webp" srcSet={model.sources.webpSrcSet} sizes="120px" />
-                          <img
-                            src={model.sources.fallbackWebp}
-                            alt={model.title}
-                            width={120}
-                            height={150}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full object-contain block"
-                          />
-                        </picture>
-                      </div>
-                      <span className="mt-1.5 font-display font-semibold text-[11px] text-[#29202A] leading-tight line-clamp-1">
-                        {model.title}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. SEÇÃO — COMO FUNCIONA EM 3 ETAPAS */}
-        <section className="cv-section w-full bg-white py-[44px] sm:py-[64px] px-[14px] sm:px-[18px] border-b border-[#FCE8F1]">
-          <div className="max-w-[1060px] mx-auto">
-            <div className="text-center max-w-[700px] mx-auto">
-              <span className="inline-block rounded-full bg-[#FCE8F1] px-3.5 py-1 text-[#F01579] text-[11.5px] font-bold tracking-[0.08em] uppercase">
-                PASSO A PASSO SIMPLES
-              </span>
-              <h2 className="mt-2.5 font-display font-bold text-[#29202A] text-[22px] sm:text-[32px] md:text-[36px] leading-[1.2] uppercase">
-                É SIMPLES COMEÇAR A{' '}
-                <span className="text-[#F01579]">ORGANIZAR SEU 2027!</span>
-              </h2>
-            </div>
-
-            <div className="mt-7 sm:mt-9 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-              {STEP_ITEMS.map((step) => (
-                <div
-                  key={step.step}
-                  className="bg-[#FFF6FA] rounded-[22px] border border-[#FCE8F1] p-5 sm:p-6 flex flex-col items-center text-center shadow-2xs"
-                >
-                  <div className="w-16 h-16 rounded-[18px] bg-white border border-[#FCE8F1] p-2.5 flex items-center justify-center shadow-2xs">
-                    <picture className="w-full h-full flex items-center justify-center">
-                      <source type="image/avif" srcSet={toAvifUrl(step.image)} />
-                      <img
-                        src={step.image}
-                        alt={`${step.code} — ${step.title}`}
-                        width={56}
-                        height={56}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-contain block"
-                      />
-                    </picture>
-                  </div>
-
-                  <span className="mt-3.5 inline-block rounded-full bg-[#FCE8F1] px-3 py-0.5 font-display font-bold text-[11px] text-[#F01579] tracking-wider uppercase">
-                    {step.code}
+                <div className="lg:col-span-6 text-center lg:text-left">
+                  <span className="inline-block rounded-full bg-white border border-[#D83A78]/30 px-3 py-0.5 font-display font-bold text-[11px] text-[#D83A78] uppercase tracking-wider">
+                    FLEXIBILIDADE PARA O SEU DIA A DIA
                   </span>
-
-                  <h3 className="mt-2 font-display font-bold text-[16.5px] sm:text-[18px] text-[#29202A] leading-snug uppercase">
-                    {step.code} — {step.title}
+                  <h3 className="mt-2 font-display font-bold text-[19px] sm:text-[24px] text-[#251B2B] leading-tight uppercase">
+                    Mais organização para seus planos.{' '}
+                    <span className="text-[#D83A78]">Mais clareza para sua rotina.</span>
                   </h3>
-
-                  <p className="mt-2 text-[14px] sm:text-[14.5px] text-[#534656] leading-[1.52]">
-                    {step.description}
+                  <p className="mt-2 text-[14px] sm:text-[15px] text-[#77717A] leading-[1.55]">
+                    Os materiais são entregues em formato digital prontos para visualizar no celular,
+                    tablet ou computador e também configurados em tamanho A4 para imprimir quantas
+                    vezes desejar.
                   </p>
+
+                  <div className="mt-5 flex justify-center lg:justify-start">
+                    <a
+                      href="#escolha-seu-kit"
+                      className="font-display inline-flex items-center justify-center gap-2 w-full sm:w-auto min-h-[50px] px-6 rounded-[14px] bg-[#16A34A] hover:bg-[#15803d] active:scale-[0.99] text-white font-bold text-[14px] sm:text-[15px] uppercase tracking-[0.02em] shadow-[0_8px_20px_rgba(22,163,74,0.24)] transition-all"
+                    >
+                      <span>QUERO CONHECER OS KITS</span>
+                      <ArrowRight className="w-4.5 h-4.5 shrink-0" />
+                    </a>
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* 6. SEÇÃO DE OFERTA DOS DOIS PLANOS (KIT BÁSICO R$ 9,90 E KIT PREMIUM R$ 27,90) */}
+        {/* =====================================================================
+            ETAPA 3 — OFERTA E ESCOLHA DO KIT (SEÇÃO MAIS IMPORTANTE DA PÁGINA)
+            ===================================================================== */}
         <section
           id="escolha-seu-kit"
-          className="cv-section w-full bg-[#FFF6FA] py-[48px] sm:py-[76px] px-[14px] sm:px-[18px] border-b border-[#FCE8F1]"
+          className="cv-section w-full bg-[#FFF9F6] py-11 sm:py-16 px-4 sm:px-6 border-b border-[#251B2B]/10"
         >
           <div id="oferta-premium" className="max-w-[1080px] mx-auto">
             <div className="text-center max-w-[740px] mx-auto">
-              <span className="inline-block rounded-full bg-[#FCE8F1] px-3.5 py-1 text-[#F01579] text-[11.5px] font-bold tracking-[0.08em] uppercase">
-                ESCOLHA O PLANO IDEAL PARA VOCÊ
+              <span className="inline-block rounded-full bg-white border border-[#D83A78]/35 px-3.5 py-1 text-[#D83A78] text-[11.5px] font-display font-bold tracking-[0.08em] uppercase">
+                OFERTA ESPECIAL • PAGAMENTO ÚNICO
               </span>
-              <h2 className="mt-2.5 font-display font-bold text-[#29202A] text-[23px] sm:text-[36px] md:text-[40px] leading-[1.2] uppercase">
-                DUAS OPÇÕES PARA ORGANIZAR{' '}
-                <span className="text-[#F01579]">SEU 2027</span>
+              <h2 className="mt-2.5 font-display font-bold text-[#251B2B] text-[24px] sm:text-[34px] md:text-[38px] leading-[1.16] uppercase">
+                ESCOLHA O KIT IDEAL{' '}
+                <span className="text-[#D83A78]">PARA SEU 2027.</span>
               </h2>
-              <p className="mt-2 text-[#534656] text-[14.5px] sm:text-[16.5px] leading-[1.52]">
-                Escolha entre o <strong>Kit Básico (100 materiais digitais)</strong> ou o{' '}
-                <strong>Kit Premium (250 materiais digitais)</strong> com pagamento único e acesso
-                digital.
+              <p className="mt-2 text-[#77717A] text-[14.5px] sm:text-[16.5px] leading-[1.5]">
+                Escolha a opção que combina com o nível de organização que você deseja alcançar.
               </p>
             </div>
 
-            <div className="mt-9 sm:mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-7 items-stretch">
-              {/* CARD 1: PLANO BÁSICO — R$ 9,90 (100 MATERIAIS DIGITAIS) */}
-              <div className="bg-white rounded-[26px] border-2 border-[#FCE8F1] p-5 sm:p-8 flex flex-col justify-between shadow-[0_8px_28px_rgba(41,32,42,0.05)]">
+            <div
+              ref={offerCardsRef}
+              className="mt-8 sm:mt-11 grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch"
+            >
+              {/* CARD 1 — KIT BÁSICO (R$ 9,90 • 100 MATERIAIS DIGITAIS) */}
+              <div className="md:col-span-5 bg-white rounded-[24px] border border-[#251B2B]/15 p-5 sm:p-7 flex flex-col justify-between shadow-[0_8px_24px_rgba(37,27,43,0.06)] order-2 md:order-1">
                 <div>
                   <div className="text-center pt-1">
-                    <span className="inline-block rounded-full bg-[#FFF6FA] border border-[#FCE8F1] px-4 py-1 font-display font-bold text-[12px] text-[#29202A] tracking-[0.08em] uppercase">
-                      {KIT_OPTIONS.basico.name}
+                    <span className="inline-block rounded-full bg-[#FFF9F6] border border-[#251B2B]/15 px-3.5 py-1 font-display font-bold text-[11.5px] text-[#251B2B] tracking-[0.08em] uppercase">
+                      KIT BÁSICO
                     </span>
-                    <h3 className="mt-2.5 font-display font-bold text-[22px] sm:text-[26px] text-[#29202A] leading-[1.2] uppercase">
-                      {KIT_OPTIONS.basico.subtitle}
+                    <h3 className="mt-2.5 font-display font-bold text-[20px] sm:text-[23px] text-[#251B2B] leading-[1.2] uppercase">
+                      100 MATERIAIS DIGITAIS
                     </h3>
-                    <p className="mt-2 text-[14px] sm:text-[15px] text-[#534656] leading-[1.5] max-w-[400px] mx-auto">
-                      {KIT_OPTIONS.basico.idealFor}
-                    </p>
-                    <p className="mt-4 font-display font-bold text-[42px] sm:text-[48px] leading-none text-[#29202A] tabular-nums">
-                      {KIT_OPTIONS.basico.price}
-                    </p>
-                    <p className="mt-2 text-[12.5px] sm:text-[13px] text-[#534656]">
-                      {KIT_OPTIONS.basico.paymentNote}
+
+                    <div className="mt-3.5">
+                      <p className="font-display font-bold text-[38px] sm:text-[44px] leading-none text-[#251B2B] tabular-nums">
+                        {KIT_OPTIONS.basico.price}
+                      </p>
+                      <p className="mt-1.5 text-[12px] sm:text-[12.5px] text-[#77717A] font-medium">
+                        {KIT_OPTIONS.basico.paymentNote}
+                      </p>
+                    </div>
+
+                    <p className="mt-3 text-[13.5px] sm:text-[14.5px] text-[#77717A] leading-[1.5] max-w-[380px] mx-auto">
+                      Uma coleção prática para começar a organizar sua rotina, planejar tarefas e
+                      acompanhar seus objetivos.
                     </p>
                   </div>
 
-                  <hr className="border-t border-[#FCE8F1] my-5" />
+                  <hr className="border-t border-[#251B2B]/10 my-4" />
 
-                  <div className="bg-[#FFF6FA] rounded-[18px] border border-[#FCE8F1] p-4 sm:p-5">
-                    <p className="font-display text-[12px] font-bold text-[#F01579] uppercase tracking-[0.08em] mb-3">
-                      DESTAQUES DO KIT BÁSICO:
+                  <div className="bg-[#FFF9F6] rounded-[16px] border border-[#251B2B]/10 p-4">
+                    <p className="font-display text-[11.5px] font-bold text-[#251B2B] uppercase tracking-[0.06em] mb-2.5">
+                      O QUE ESTÁ INCLUÍDO NO KIT BÁSICO:
                     </p>
-                    <ul className="space-y-2.5 text-[14px] sm:text-[14.5px]">
+                    <ul className="space-y-2 text-[13.5px] sm:text-[14px]">
                       {KIT_OPTIONS.basico.includedFeatures.map((feat) => (
                         <li
                           key={feat}
-                          className="flex items-start gap-2.5 text-[#29202A] leading-[1.45]"
+                          className="flex items-start gap-2.5 text-[#251B2B] leading-[1.42]"
                         >
-                          <span className="w-5 h-5 rounded-full bg-[#e8faee] text-[#16B83A] flex items-center justify-center shrink-0 mt-0.5">
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <span className="w-4.5 h-4.5 rounded-full bg-[#16A34A]/12 text-[#16A34A] flex items-center justify-center shrink-0 mt-0.5">
+                            <Check className="w-3 h-3 stroke-[3]" />
                           </span>
                           <span className="font-medium">{feat}</span>
                         </li>
@@ -892,86 +741,95 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* BOTÃO DO KIT BÁSICO: Abre o Popup Estratégico de Upgrade antes de ir ao checkout */}
+                {/* BOTÃO DO KIT BÁSICO: Preserva integralmente o handler e rastreamento */}
                 <div className="mt-6 text-center">
                   <button
                     type="button"
                     data-testid="kit-basico-cta"
                     onClick={() => handleBasicPlanClick('plans_section')}
-                    className="font-display inline-flex items-center justify-center gap-2 w-full min-h-[54px] sm:min-h-[58px] rounded-[16px] border-2 border-[#16B83A] bg-white hover:bg-[#e8faee] active:scale-[0.99] text-[#16B83A] font-bold text-[14px] sm:text-[15.5px] tracking-normal uppercase transition-all cursor-pointer px-4"
+                    className="font-display inline-flex items-center justify-center gap-2 w-full min-h-[52px] sm:min-h-[54px] rounded-[14px] border-2 border-[#16A34A] bg-white hover:bg-[#16A34A]/8 active:scale-[0.99] text-[#16A34A] font-bold text-[14px] sm:text-[15px] tracking-[0.02em] uppercase transition-colors cursor-pointer px-4"
                   >
-                    <ShoppingCart className="w-5 h-5 shrink-0" />
-                    <span>{KIT_OPTIONS.basico.ctaLabel}</span>
+                    <ShoppingCart className="w-4.5 h-4.5 shrink-0" />
+                    <span>QUERO MEU KIT BÁSICO</span>
                   </button>
-                  <p className="mt-2.5 text-[12px] sm:text-[13px] font-medium text-[#534656]">
+                  <p className="mt-2 text-[12px] font-medium text-[#77717A]">
                     Pagamento único • Sem mensalidade • Garantia de 7 dias
                   </p>
                 </div>
               </div>
 
-              {/* CARD 2: PLANO PREMIUM — R$ 27,90 (250 MATERIAIS DIGITAIS — MAIS COMPLETO) */}
-              <div className="relative bg-gradient-to-b from-[#FCE8F1]/60 via-white to-white rounded-[26px] border-2 border-[#F01579] p-5 sm:p-8 flex flex-col justify-between shadow-[0_18px_46px_rgba(240,21,121,0.16)] mt-2 md:mt-0">
-                {/* Selo Superior: MAIS COMPLETO */}
+              {/* CARD 2 — KIT PREMIUM EM DESTAQUE (R$ 27,90 • 250 MATERIAIS DIGITAIS + 6 BÔNUS COMPLEMENTARES) */}
+              <div className="md:col-span-7 relative bg-white rounded-[26px] border-3 border-[#D83A78] p-5 sm:p-8 flex flex-col justify-between shadow-[0_20px_48px_rgba(216,58,120,0.16)] order-1 md:order-2">
+                {/* Selo de Destaque Superior */}
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="font-display inline-flex items-center gap-1.5 bg-[#F01579] border border-[#F4C542] text-white text-[12px] sm:text-[13px] font-bold px-5 py-1.5 rounded-full uppercase tracking-wider shadow-sm whitespace-nowrap">
-                    <Sparkles className="w-3.5 h-3.5 text-[#F4C542] shrink-0" />
-                    <span>{KIT_OPTIONS.premium.badge}</span>
+                  <span className="font-display inline-flex items-center gap-1.5 bg-[#D83A78] text-white text-[11.5px] sm:text-[13px] font-bold px-4 sm:px-5 py-1 rounded-full uppercase tracking-[0.06em] shadow-sm whitespace-nowrap">
+                    <Sparkles className="w-3.5 h-3.5 text-white shrink-0" />
+                    <span>KIT MAIS COMPLETO</span>
                   </span>
                 </div>
 
                 <div>
                   <div className="text-center pt-2">
-                    <span className="inline-block rounded-full bg-[#FCE8F1] border border-[#F01579]/30 px-4 py-1 font-display font-bold text-[12px] text-[#F01579] tracking-[0.08em] uppercase">
-                      {KIT_OPTIONS.premium.name}
+                    <span className="inline-block rounded-full bg-[#D83A78]/10 border border-[#D83A78]/30 px-4 py-1 font-display font-bold text-[12px] text-[#D83A78] tracking-[0.08em] uppercase">
+                      KIT PREMIUM
                     </span>
-                    <h3 className="mt-2.5 font-display font-bold text-[22px] sm:text-[26px] text-[#29202A] leading-[1.2] uppercase">
-                      <span className="text-[#F01579]">250</span> materiais digitais.
+                    <h3 className="mt-2.5 font-display font-bold text-[22px] sm:text-[27px] text-[#251B2B] leading-[1.18] uppercase">
+                      <span className="text-[#D83A78]">250 MATERIAIS DIGITAIS</span> + 6 BÔNUS
+                      COMPLEMENTARES
                     </h3>
-                    <p className="mt-2 text-[14px] sm:text-[15px] text-[#534656] leading-[1.5] max-w-[420px] mx-auto">
-                      {KIT_OPTIONS.premium.idealFor}
-                    </p>
-                    <p className="mt-4 font-display font-bold text-[44px] sm:text-[52px] leading-none text-[#16B83A] tabular-nums">
-                      {KIT_OPTIONS.premium.price}
-                    </p>
-                    <p className="mt-2 text-[12.5px] sm:text-[13px] text-[#534656]">
-                      {KIT_OPTIONS.premium.paymentNote}
+
+                    <div className="mt-3.5 inline-flex flex-col items-center bg-[#FFF9F6] border border-[#D83A78]/25 rounded-[18px] px-6 py-3.5">
+                      <span className="text-[11px] font-display font-bold text-[#D83A78] uppercase tracking-wider">
+                        COLEÇÃO COMPLETA • MELHOR CUSTO-BENEFÍCIO
+                      </span>
+                      <p className="mt-1 font-display font-bold text-[44px] sm:text-[52px] leading-none text-[#16A34A] tabular-nums">
+                        {KIT_OPTIONS.premium.price}
+                      </p>
+                      <p className="mt-1 text-[12px] sm:text-[12.5px] font-medium text-[#77717A]">
+                        {KIT_OPTIONS.premium.paymentNote}
+                      </p>
+                    </div>
+
+                    <p className="mt-3 text-[13.5px] sm:text-[15px] text-[#77717A] leading-[1.5] max-w-[480px] mx-auto">
+                      Tenha uma coleção ainda mais completa de materiais para planejar, organizar e
+                      acompanhar diferentes áreas da sua rotina.
                     </p>
                   </div>
 
-                  <hr className="border-t border-[#FCE8F1] my-5" />
+                  <hr className="border-t border-[#251B2B]/10 my-4" />
 
-                  <div className="bg-white rounded-[18px] border border-[#FCE8F1] p-4 sm:p-5">
-                    <p className="font-display text-[12px] font-bold text-[#F01579] uppercase tracking-[0.08em] mb-3">
-                      DESTAQUES DO KIT PREMIUM (OPÇÃO MAIS COMPLETA):
+                  <div className="bg-[#FFF9F6] rounded-[18px] border border-[#D83A78]/20 p-4 sm:p-5">
+                    <p className="font-display text-[12px] font-bold text-[#D83A78] uppercase tracking-[0.06em] mb-3">
+                      TUDO O QUE VOCÊ RECEBE NO KIT PREMIUM:
                     </p>
-                    <ul className="space-y-2.5 text-[14px] sm:text-[14.5px]">
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[13.5px] sm:text-[14px]">
                       {KIT_OPTIONS.premium.includedFeatures.map((feat, idx) => (
                         <li
                           key={feat}
-                          className={`flex items-start gap-2.5 text-[#29202A] leading-[1.45] ${
-                            idx <= 1 ? 'font-bold text-[#F01579]' : 'font-medium'
+                          className={`flex items-start gap-2 text-[#251B2B] leading-[1.42] ${
+                            idx <= 1 ? 'font-bold text-[#D83A78]' : 'font-medium'
                           }`}
                         >
-                          <span className="w-5 h-5 rounded-full bg-[#e8faee] text-[#16B83A] flex items-center justify-center shrink-0 mt-0.5">
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <span className="w-4.5 h-4.5 rounded-full bg-[#16A34A]/12 text-[#16A34A] flex items-center justify-center shrink-0 mt-0.5">
+                            <Check className="w-3 h-3 stroke-[3]" />
                           </span>
                           <span>{feat}</span>
                         </li>
                       ))}
                     </ul>
 
-                    {/* Destaque dos 6 Bônus Incluídos no Kit Premium */}
+                    {/* 6 Bônus Complementares Inclusos no Kit Premium */}
                     {KIT_OPTIONS.premium.bonuses && (
-                      <div className="mt-4 pt-4 border-t border-[#FCE8F1]">
-                        <p className="font-display inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[#29202A] uppercase tracking-wider mb-2">
-                          <Gift className="w-4 h-4 text-[#F01579] shrink-0" />
-                          <span>6 BÔNUS EXCLUSIVOS INCLUÍDOS NO PREMIUM:</span>
+                      <div className="mt-4 pt-3.5 border-t border-[#251B2B]/10">
+                        <p className="font-display inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[#251B2B] uppercase tracking-wider mb-2.5">
+                          <Gift className="w-4 h-4 text-[#D83A78] shrink-0" />
+                          <span>6 BÔNUS COMPLEMENTARES INCLUÍDOS:</span>
                         </p>
-                        <ul className="space-y-1.5 text-[13px] text-[#534656]">
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[12.5px] sm:text-[13px] text-[#251B2B]">
                           {KIT_OPTIONS.premium.bonuses.map((bonus) => (
                             <li key={bonus} className="flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#F01579] shrink-0" />
-                              <span className="font-medium text-[#29202A]">{bonus}</span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#D83A78] shrink-0" />
+                              <span className="font-medium">{bonus}</span>
                             </li>
                           ))}
                         </ul>
@@ -980,359 +838,280 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* BOTÃO DO KIT PREMIUM: Direciona diretamente para o checkout Premium (R$ 27,90) */}
+                {/* BOTÃO DO KIT PREMIUM: Preserva integralmente atributos UTMify, Pixel e checkout Cakto */}
                 <div className="mt-6 text-center">
                   <a
                     href={premiumCheckoutHref}
                     target="_blank"
                     rel="noopener noreferrer"
                     data-testid="kit-premium-cta"
+                    data-checkout-plan="premium"
+                    data-checkout-name={KIT_OPTIONS.premium.name}
+                    data-checkout-id="kit_premium_250"
+                    data-checkout-value={String(KIT_OPTIONS.premium.priceNumeric)}
+                    data-checkout-currency="BRL"
                     onClick={(e) => handleDirectPremiumClick(e, 'plans_section')}
-                    className="font-display inline-flex items-center justify-center gap-2 w-full min-h-[54px] sm:min-h-[58px] rounded-[16px] bg-[#16B83A] hover:bg-[#139e31] hover:-translate-y-0.5 active:scale-[0.99] text-white font-bold text-[15px] sm:text-[17px] tracking-normal uppercase shadow-[0_12px_28px_rgba(22,184,58,0.32)] transition-all cursor-pointer px-4"
+                    className="utmify-ic-btn utmify-ic-premium font-display inline-flex items-center justify-center gap-2 w-full min-h-[54px] sm:min-h-[58px] rounded-[16px] bg-[#16A34A] hover:bg-[#15803d] active:scale-[0.99] text-white font-bold text-[15px] sm:text-[17px] tracking-[0.02em] uppercase shadow-[0_12px_28px_rgba(22,163,74,0.3)] transition-all cursor-pointer px-4"
                   >
                     <ShoppingCart className="w-5 h-5 shrink-0" />
-                    <span>{KIT_OPTIONS.premium.ctaLabel}</span>
+                    <span>QUERO MEU KIT PREMIUM</span>
+                    <ArrowRight className="w-4.5 h-4.5 shrink-0" />
                   </a>
-                  <p className="mt-2.5 text-[12px] sm:text-[13px] font-medium text-[#534656]">
-                    Pagamento único • Sem mensalidade • Garantia de 7 dias
+                  <p className="mt-2 text-[12px] sm:text-[12.5px] font-medium text-[#77717A]">
+                    Acesso digital após confirmação • Pagamento único • Garantia de 7 dias
                   </p>
                 </div>
               </div>
             </div>
+          </div>
+        </section>
 
-            {/* Vitrine Visual dos 6 Bônus Inclusos no Kit Premium */}
-            <div className="mt-10 bg-white rounded-[24px] border-2 border-[#FCE8F1] p-5 sm:p-7 shadow-2xs">
+        {/* =====================================================================
+            ETAPA 4 — CONFIANÇA, GARANTIA E FAQ + CHAMADA FINAL
+            ===================================================================== */}
+        <section
+          id="confianca-e-faq"
+          className="cv-section w-full bg-white py-11 sm:py-16 px-4 sm:px-6"
+        >
+          <div className="max-w-[980px] mx-auto space-y-10 sm:space-y-12">
+            {/* BLOCO DE SEGURANÇA E GARANTIA: COMPRE COM TRANQUILIDADE */}
+            <div className="bg-[#FFF9F6] rounded-[24px] border border-[#251B2B]/10 p-5 sm:p-8 shadow-[0_10px_28px_rgba(37,27,43,0.04)]">
               <div className="text-center max-w-[680px] mx-auto">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FCE8F1] border border-[#F4C542] px-3.5 py-1 text-[#F01579] text-[11px] font-display font-bold uppercase tracking-wider">
-                  <Gift className="w-3.5 h-3.5 text-[#F01579]" />
-                  <span>INCLUÍDOS NO KIT PREMIUM</span>
+                <span className="inline-block rounded-full bg-white border border-[#D83A78]/30 px-3.5 py-1 text-[#D83A78] text-[11px] font-display font-bold tracking-[0.08em] uppercase">
+                  COMPRA SEGURA E TRANSPARENTE
                 </span>
-                <h3 className="mt-2 font-display font-bold text-[#29202A] text-[20px] sm:text-[26px] leading-tight uppercase">
-                  CONHEÇA OS <span className="text-[#F01579]">6 BÔNUS COMPLEMENTARES</span> DO KIT
-                  PREMIUM
-                </h3>
-                <p className="mt-1.5 text-[14px] text-[#534656]">
-                  Ao escolher o Kit Premium, além dos 250 materiais digitais, você recebe estes 6
-                  materiais complementares sem custo adicional:
-                </p>
+                <h2 className="mt-2 font-display font-bold text-[#251B2B] text-[22px] sm:text-[30px] leading-[1.2] uppercase">
+                  COMPRE COM <span className="text-[#D83A78]">TRANQUILIDADE.</span>
+                </h2>
               </div>
 
-              <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {BONUS_ITEM_SOURCES.map((bonus) => (
-                  <div
-                    key={bonus.number}
-                    className="rounded-[16px] bg-[#FFF6FA] border border-[#FCE8F1] p-2.5 flex flex-col justify-between text-center"
-                  >
-                    <div>
-                      <div className="w-full aspect-[3/4] rounded-[10px] bg-white border border-[#FCE8F1] p-1.5 flex items-center justify-center overflow-hidden">
-                        <picture className="w-full h-full flex items-center justify-center">
-                          <source
-                            type="image/avif"
-                            srcSet={bonus.sources.avifSrcSet}
-                            sizes="(max-width: 640px) 44vw, 180px"
-                          />
-                          <source
-                            type="image/webp"
-                            srcSet={bonus.sources.webpSrcSet}
-                            sizes="(max-width: 640px) 44vw, 180px"
-                          />
-                          <img
-                            src={bonus.sources.fallbackWebp}
-                            alt={`Bônus ${bonus.number} — ${bonus.title}`}
-                            width={180}
-                            height={240}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full object-contain block"
-                          />
-                        </picture>
-                      </div>
-                      <span className="mt-2 inline-block rounded-full bg-[#FCE8F1] px-2 py-0.5 font-display font-bold text-[9.5px] text-[#F01579] uppercase">
-                        BÔNUS {bonus.number}
-                      </span>
-                      <h4 className="mt-1 font-display font-bold text-[12px] text-[#29202A] leading-tight uppercase">
-                        {bonus.title}
-                      </h4>
-                    </div>
-                    <p className="mt-1 text-[11px] text-[#534656] leading-snug">
-                      {bonus.description}
+              {/* 4 Indicadores Objetivos */}
+              <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="bg-white rounded-[16px] border border-[#251B2B]/10 p-4 flex flex-col items-start gap-2">
+                  <div className="w-9 h-9 rounded-[10px] bg-[#D83A78]/10 text-[#D83A78] flex items-center justify-center shrink-0">
+                    <FileText className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-[13.5px] sm:text-[14.5px] text-[#251B2B] uppercase">
+                      Produto digital
+                    </h3>
+                    <p className="mt-0.5 text-[12.5px] text-[#77717A] leading-snug">
+                      Arquivos prontos para usar no celular, tablet ou imprimir em A4.
                     </p>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+                </div>
 
-        {/* 7. SEÇÃO — COMPARAÇÃO DOS PLANOS (TABELA VISUAL) */}
-        <section className="cv-section w-full bg-white py-[46px] sm:py-[72px] px-[14px] sm:px-[18px] border-b border-[#FCE8F1]">
-          <div className="max-w-[900px] mx-auto">
-            <div className="text-center max-w-[680px] mx-auto">
-              <span className="inline-block rounded-full bg-[#FCE8F1] px-3.5 py-1 text-[#F01579] text-[11.5px] font-bold tracking-[0.08em] uppercase">
-                COMPARATIVO TRANSPARENTE
-              </span>
-              <h2 className="mt-2.5 font-display font-bold text-[#29202A] text-[22px] sm:text-[34px] leading-[1.2] uppercase">
-                COMPARE AS <span className="text-[#F01579]">DUAS OPÇÕES</span>
-              </h2>
-              <p className="mt-2 text-[#534656] text-[14.5px] sm:text-[16px] leading-[1.5]">
-                Veja lado a lado o que está incluído no Kit Básico e no Kit Premium.
-              </p>
-            </div>
-
-            <div className="mt-7 sm:mt-9 overflow-hidden rounded-[22px] border-2 border-[#FCE8F1] bg-white shadow-2xs">
-              <table className="w-full border-collapse text-left">
-                <thead>
-                  <tr className="border-b-2 border-[#FCE8F1] bg-[#FFF6FA]">
-                    <th className="py-3.5 px-3 sm:px-5 font-display font-bold text-[12.5px] sm:text-[14.5px] text-[#29202A] uppercase">
-                      Característica
-                    </th>
-                    <th className="py-3.5 px-3 sm:px-5 font-display font-bold text-[12.5px] sm:text-[14.5px] text-[#29202A] text-center uppercase">
-                      Básico
-                    </th>
-                    <th className="py-3.5 px-3 sm:px-5 font-display font-bold text-[12.5px] sm:text-[14.5px] text-[#F01579] text-center uppercase bg-[#FCE8F1]/60">
-                      <span className="block">Premium</span>
-                      <span className="inline-block mt-0.5 rounded-full bg-[#F4C542] text-[#29202A] px-2 py-0.5 text-[9.5px] font-bold">
-                        MAIS COMPLETO
-                      </span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#FCE8F1] text-[13px] sm:text-[14.5px]">
-                  {PLAN_COMPARISON_ROWS.map((row) => (
-                    <tr key={row.feature} className="hover:bg-[#FFF6FA]/60 transition-colors">
-                      <td className="py-3.5 px-3 sm:px-5 font-medium text-[#29202A]">
-                        {row.feature}
-                      </td>
-                      <td className="py-3.5 px-3 sm:px-5 text-center font-medium text-[#534656] tabular-nums">
-                        {row.basico}
-                      </td>
-                      <td
-                        className={`py-3.5 px-3 sm:px-5 text-center bg-[#FCE8F1]/30 tabular-nums ${
-                          row.highlightPremium
-                            ? 'font-display font-bold text-[15px] sm:text-[17px] text-[#F01579]'
-                            : 'font-semibold text-[#29202A]'
-                        }`}
-                      >
-                        {row.premium}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        {/* 8. SEÇÃO — CONFIANÇA, SEGURANÇA E SUPORTE HUMANIZADO */}
-        <section className="cv-section w-full bg-[#FFF6FA] py-[46px] sm:py-[68px] px-[14px] sm:px-[18px] border-b border-[#FCE8F1]">
-          <div className="max-w-[1040px] mx-auto space-y-6 sm:space-y-8">
-            {/* Pilares de Confiança */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-              <div className="bg-white rounded-[20px] border border-[#FCE8F1] p-4 sm:p-5 flex items-start gap-3 shadow-2xs">
-                <div className="w-10 h-10 rounded-[12px] bg-[#e8faee] text-[#16B83A] flex items-center justify-center shrink-0">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-[14.5px] text-[#29202A] uppercase">
-                    Pagamento único
-                  </h3>
-                  <p className="mt-1 text-[13px] text-[#534656] leading-snug">
-                    Sem mensalidade e sem cobranças recorrentes.
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-[20px] border border-[#FCE8F1] p-4 sm:p-5 flex items-start gap-3 shadow-2xs">
-                <div className="w-10 h-10 rounded-[12px] bg-[#FCE8F1] text-[#F01579] flex items-center justify-center shrink-0">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-[14.5px] text-[#29202A] uppercase">
-                    Acesso digital
-                  </h3>
-                  <p className="mt-1 text-[13px] text-[#534656] leading-snug">
-                    Liberação dos arquivos após a confirmação do pagamento.
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-[20px] border border-[#FCE8F1] p-4 sm:p-5 flex items-start gap-3 shadow-2xs">
-                <div className="w-10 h-10 rounded-[12px] bg-[#e8faee] text-[#16B83A] flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-[14.5px] text-[#29202A] uppercase">
-                    Garantia de 7 dias
-                  </h3>
-                  <p className="mt-1 text-[13px] text-[#534656] leading-snug">
-                    Segurança para conhecer o material com tranquilidade.
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-[20px] border border-[#FCE8F1] p-4 sm:p-5 flex items-start gap-3 shadow-2xs">
-                <div className="w-10 h-10 rounded-[12px] bg-[#FCE8F1] text-[#F01579] flex items-center justify-center shrink-0">
-                  <Headset className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-[14.5px] text-[#29202A] uppercase">
-                    Suporte humanizado
-                  </h3>
-                  <p className="mt-1 text-[13px] text-[#534656] leading-snug">
-                    Atendimento pelos canais oficiais da operação.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Bloco de Garantia de 7 Dias + Canal Oficial de Suporte */}
-            <div className="bg-white rounded-[24px] border-2 border-[#FCE8F1] p-5 sm:p-8 shadow-2xs grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-              <div className="lg:col-span-7 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
-                <div className="w-[100px] sm:w-[124px] shrink-0 flex items-center justify-center">
-                  <picture className="w-full">
-                    <source type="image/avif" srcSet={toAvifUrl(GUARANTEE_BADGE_IMAGE)} />
-                    <img
-                      src={GUARANTEE_BADGE_IMAGE}
-                      alt="Selo de Garantia de 7 Dias"
-                      width={240}
-                      height={260}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-auto object-contain block"
-                    />
-                  </picture>
-                </div>
-                <div>
-                  <span className="inline-block rounded-full bg-[#FCE8F1] border border-[#F4C542] px-3.5 py-1 text-[#F01579] text-[11px] font-bold tracking-[0.08em] uppercase">
-                    GARANTIA DE 7 DIAS
-                  </span>
-                  <h2 className="mt-2 font-display font-bold text-[#29202A] text-[21px] sm:text-[26px] leading-[1.2] uppercase">
-                    COMPRE COM <span className="text-[#F01579]">TRANQUILIDADE!</span>
-                  </h2>
-                  <p className="mt-1.5 text-[#534656] text-[14px] sm:text-[15px] leading-[1.55]">
-                    Você tem 7 dias de garantia para conhecer o material. Se dentro desse período
-                    decidir que a coleção não é adequada para você, poderá solicitar o reembolso
-                    conforme as condições da garantia.
-                  </p>
-                </div>
-              </div>
-
-              {/* Elemento estritamente informativo de Suporte Humanizado (sem ação de clique conforme Regra 9) */}
-              <div
-                data-testid="support-info-static"
-                className="lg:col-span-5 rounded-[20px] bg-[#FFF6FA] border border-[#FCE8F1] p-4 sm:p-5 select-none"
-              >
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-[#FCE8F1] px-3 py-1 text-[#F01579] text-[11px] font-display font-bold uppercase tracking-wider">
-                  <Headset className="w-3.5 h-3.5 text-[#F01579] shrink-0" />
-                  <span>SUPORTE HUMANIZADO</span>
-                </div>
-                <h3 className="mt-2 font-display font-bold text-[15px] text-[#29202A] uppercase">
-                  Atendimento e acompanhamento ao aluno
-                </h3>
-                <ul className="mt-2.5 space-y-2 text-[13.5px] text-[#29202A]">
-                  {SUPPORT_HIGHLIGHTS.map((item) => (
-                    <li key={item} className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-[#16B83A] stroke-[3] shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 9. SEÇÃO — PERGUNTAS FREQUENTES */}
-        <section className="cv-section w-full bg-white py-[46px] sm:py-[72px] px-[14px] sm:px-[18px]">
-          <div className="max-w-[800px] mx-auto">
-            <div className="text-center">
-              <span className="inline-block rounded-full bg-[#FCE8F1] px-3.5 py-1 text-[#F01579] text-[11.5px] font-bold tracking-[0.08em] uppercase">
-                PERGUNTAS FREQUENTES
-              </span>
-              <h2 className="mt-2.5 font-display font-bold text-[#29202A] text-[22px] sm:text-[34px] md:text-[38px] leading-[1.2] uppercase">
-                TIRE SUAS DÚVIDAS <span className="text-[#F01579]">ANTES DE COMPRAR</span>
-              </h2>
-            </div>
-
-            <div className="mt-7 sm:mt-9 space-y-3">
-              {FAQ_ITEMS.map((faq) => {
-                const isOpen = openFaqId === faq.id;
-                return (
-                  <div
-                    key={faq.id}
-                    className="bg-[#FFF6FA] rounded-[18px] border border-[#FCE8F1] overflow-hidden transition-colors"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => toggleFaq(faq.id)}
-                      aria-expanded={isOpen}
-                      className="w-full min-h-[54px] px-4 sm:px-5 py-3.5 sm:py-4 flex items-center justify-between gap-3 text-left font-display font-bold text-[15px] sm:text-[16.5px] text-[#29202A] hover:text-[#F01579] transition-colors cursor-pointer"
-                    >
-                      <span>
-                        <span className="text-[#F01579] mr-1.5">{faq.number}.</span>
-                        {faq.question}
-                      </span>
-                      <ChevronDown
-                        className={`w-4.5 h-4.5 text-[#534656] shrink-0 transition-transform duration-200 ${
-                          isOpen ? 'rotate-180 text-[#F01579]' : ''
-                        }`}
-                      />
-                    </button>
-                    {isOpen && (
-                      <div className="px-4 sm:px-5 pb-4 pt-1 text-[14px] sm:text-[15px] leading-[1.6] text-[#534656] bg-white border-t border-[#FCE8F1]">
-                        {faq.answer}
-                      </div>
-                    )}
+                <div className="bg-white rounded-[16px] border border-[#251B2B]/10 p-4 flex flex-col items-start gap-2">
+                  <div className="w-9 h-9 rounded-[10px] bg-[#16A34A]/12 text-[#16A34A] flex items-center justify-center shrink-0">
+                    <Check className="w-4.5 h-4.5 stroke-[2.5]" />
                   </div>
-                );
-              })}
+                  <div>
+                    <h3 className="font-display font-bold text-[13.5px] sm:text-[14.5px] text-[#251B2B] uppercase">
+                      Acesso digital
+                    </h3>
+                    <p className="mt-0.5 text-[12.5px] text-[#77717A] leading-snug">
+                      Envio das instruções de acesso após a confirmação do pagamento.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-[16px] border border-[#251B2B]/10 p-4 flex flex-col items-start gap-2">
+                  <div className="w-9 h-9 rounded-[10px] bg-[#16A34A]/12 text-[#16A34A] flex items-center justify-center shrink-0">
+                    <Lock className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-[13.5px] sm:text-[14.5px] text-[#251B2B] uppercase">
+                      Pagamento único
+                    </h3>
+                    <p className="mt-0.5 text-[12.5px] text-[#77717A] leading-snug">
+                      Você paga apenas uma vez, sem mensalidades ou cobranças extras.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-[16px] border border-[#251B2B]/10 p-4 flex flex-col items-start gap-2">
+                  <div className="w-9 h-9 rounded-[10px] bg-[#D83A78]/10 text-[#D83A78] flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-[13.5px] sm:text-[14.5px] text-[#251B2B] uppercase">
+                      Garantia de 7 dias
+                    </h3>
+                    <p className="mt-0.5 text-[12.5px] text-[#77717A] leading-snug">
+                      Direito de solicitar reembolso dentro do prazo legal de 7 dias.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Selo de Garantia de 7 Dias + Atendimento */}
+              <div className="mt-5 pt-5 border-t border-[#251B2B]/10 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+                <div className="lg:col-span-7 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                  <div className="w-[84px] sm:w-[104px] shrink-0 flex items-center justify-center">
+                    <picture className="w-full">
+                      <source type="image/avif" srcSet={toAvifUrl(GUARANTEE_BADGE_IMAGE)} />
+                      <img
+                        src={GUARANTEE_BADGE_IMAGE}
+                        alt="Selo de Garantia de 7 Dias"
+                        width={240}
+                        height={260}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-auto object-contain block"
+                      />
+                    </picture>
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-[#251B2B] text-[17px] sm:text-[20px] leading-snug uppercase">
+                      GARANTIA DE 7 DIAS PARA SUA SEGURANÇA
+                    </h3>
+                    <p className="mt-1 text-[#77717A] text-[13.5px] sm:text-[14.5px] leading-[1.55]">
+                      Você conta com 7 dias de garantia a partir da compra para avaliar os
+                      materiais. Caso deseje solicitar o reembolso dentro desse período, basta
+                      acionar o suporte oficial.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  data-testid="support-info-static"
+                  className="lg:col-span-5 rounded-[16px] bg-white border border-[#251B2B]/10 p-4"
+                >
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-[#D83A78]/10 px-2.5 py-0.5 text-[#D83A78] text-[10.5px] font-display font-bold uppercase tracking-wider">
+                    <Headset className="w-3.5 h-3.5 text-[#D83A78] shrink-0" />
+                    <span>SUPORTE AO COMPRADOR</span>
+                  </div>
+                  <ul className="mt-2.5 space-y-1.5 text-[13px] text-[#251B2B]">
+                    {SUPPORT_HIGHLIGHTS.map((item) => (
+                      <li key={item} className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-[#16A34A] stroke-[3] shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* FAQ COMPACTO EM FORMATO ACORDEÃO (6 PERGUNTAS OBJETIVAS) */}
+            <div className="max-w-[820px] mx-auto">
+              <div className="text-center">
+                <span className="inline-block rounded-full bg-[#FFF9F6] border border-[#D83A78]/30 px-3.5 py-1 text-[#D83A78] text-[11px] font-display font-bold tracking-[0.08em] uppercase">
+                  PERGUNTAS FREQUENTES
+                </span>
+                <h2 className="mt-2 font-display font-bold text-[#251B2B] text-[22px] sm:text-[30px] leading-[1.2] uppercase">
+                  TIRE SUAS DÚVIDAS <span className="text-[#D83A78]">SOBRE OS KITS.</span>
+                </h2>
+              </div>
+
+              <div className="mt-6 space-y-2.5">
+                {FUNNEL_FAQ_ITEMS.map((faq) => {
+                  const isOpen = openFaqId === faq.id;
+                  return (
+                    <div
+                      key={faq.id}
+                      className="bg-[#FFF9F6] rounded-[16px] border border-[#251B2B]/10 overflow-hidden transition-colors"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleFaq(faq.id)}
+                        aria-expanded={isOpen}
+                        className="w-full min-h-[52px] px-4 sm:px-5 py-3.5 flex items-center justify-between gap-3 text-left font-display font-bold text-[14.5px] sm:text-[16px] text-[#251B2B] hover:text-[#D83A78] transition-colors cursor-pointer"
+                      >
+                        <span>
+                          <span className="text-[#D83A78] mr-1.5">{faq.number}.</span>
+                          {faq.question}
+                        </span>
+                        <ChevronDown
+                          className={`w-4.5 h-4.5 text-[#77717A] shrink-0 transition-transform duration-200 ${
+                            isOpen ? 'rotate-180 text-[#D83A78]' : ''
+                          }`}
+                        />
+                      </button>
+                      {isOpen && (
+                        <div className="px-4 sm:px-5 pb-4 pt-1 text-[13.5px] sm:text-[14.5px] leading-[1.55] text-[#77717A] bg-white border-t border-[#251B2B]/10">
+                          {faq.answer}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* CHAMADA FINAL */}
+            <div className="max-w-[820px] mx-auto bg-[#251B2B] rounded-[24px] border-2 border-[#D83A78] p-6 sm:p-9 text-center text-white shadow-[0_16px_38px_rgba(37,27,43,0.18)]">
+              <span className="inline-block rounded-full bg-[#D83A78]/20 border border-[#D83A78]/50 px-3.5 py-1 font-display font-bold text-[11px] text-white uppercase tracking-wider">
+                PLANEJAMENTO 2027
+              </span>
+              <h2 className="mt-2.5 font-display font-bold text-[22px] sm:text-[30px] text-white uppercase leading-tight">
+                COMECE A ORGANIZAR SEU 2027 HOJE!
+              </h2>
+              <p className="mt-2 text-[14px] sm:text-[16px] text-white/80 max-w-[540px] mx-auto leading-[1.5]">
+                Escolha seu kit e tenha ferramentas práticas para planejar melhor sua rotina.
+              </p>
+
+              <div className="mt-6 flex justify-center">
+                <a
+                  href="#escolha-seu-kit"
+                  className="font-display inline-flex items-center justify-center gap-2.5 w-full sm:w-auto min-h-[54px] px-8 rounded-[14px] bg-[#16A34A] hover:bg-[#15803d] active:scale-[0.99] text-white font-bold text-[15px] sm:text-[16.5px] uppercase tracking-[0.02em] shadow-[0_10px_24px_rgba(22,163,74,0.32)] transition-all"
+                >
+                  <span>ESCOLHER MEU KIT</span>
+                  <ArrowRight className="w-5 h-5 shrink-0" />
+                </a>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* 10. BARRA FIXA INFERIOR NO CELULAR */}
-      {showFloatingBar && !isFloatingBarDismissed && !isUpsellModalOpen && !activeLegalModal && (
-        <div
-          data-testid="mobile-sticky-bar"
-          className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-xs border-t border-[#FCE8F1] px-[12px] pt-2 pb-safe-bar shadow-[0_-6px_20px_rgba(41,32,42,0.08)] flex items-center justify-between gap-2"
-        >
-          <div className="min-w-0 pl-1">
-            <span className="block font-display font-bold text-[11px] text-[#F01579] uppercase tracking-wider leading-tight">
-              PLANNER 2027
-            </span>
-            <span className="font-display font-bold text-[13.5px] text-[#29202A] leading-tight tabular-nums">
-              Básico R$ 9,90 • <strong className="text-[#16B83A]">Premium R$ 27,90</strong>
-            </span>
+      {/* BARRA FIXA INFERIOR NO MOBILE (Oculta automaticamente quando os cards de oferta estão visíveis) */}
+      {showFloatingBar &&
+        !isOfferSectionVisible &&
+        !isFloatingBarDismissed &&
+        !isUpsellModalOpen &&
+        !activeLegalModal && (
+          <div
+            data-testid="mobile-sticky-bar"
+            className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-xs border-t border-[#251B2B]/15 px-3 pt-2 pb-safe-bar shadow-[0_-6px_20px_rgba(37,27,43,0.1)] flex items-center justify-between gap-2"
+          >
+            <div className="min-w-0 pl-0.5">
+              <span className="block font-display font-bold text-[10.5px] text-[#D83A78] uppercase tracking-wider leading-tight">
+                KIT DE ORGANIZAÇÃO 2027
+              </span>
+              <span className="font-display font-bold text-[13px] text-[#251B2B] leading-tight tabular-nums">
+                Básico R$ 9,90 • <strong className="text-[#16A34A]">Premium R$ 27,90</strong>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <a
+                href="#escolha-seu-kit"
+                data-testid="mobile-sticky-cta"
+                className="font-display inline-flex items-center justify-center gap-1.5 min-h-[42px] px-3.5 rounded-[12px] bg-[#16A34A] hover:bg-[#15803d] active:scale-[0.98] text-white font-bold text-[11.5px] uppercase tracking-normal shadow-xs transition-transform cursor-pointer whitespace-nowrap"
+              >
+                <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
+                <span>ESCOLHER KIT</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setIsFloatingBarDismissed(true)}
+                aria-label="Minimizar barra de oferta"
+                className="w-9 h-10 rounded-[10px] text-[#77717A] hover:text-[#251B2B] hover:bg-[#FFF9F6] flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
+        )}
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            <a
-              href="#escolha-seu-kit"
-              data-testid="mobile-sticky-cta"
-              className="font-display inline-flex items-center justify-center gap-1.5 min-h-[42px] px-3.5 rounded-[12px] bg-[#16B83A] hover:bg-[#139e31] active:scale-[0.98] text-white font-bold text-[12px] uppercase tracking-normal shadow-xs transition-transform cursor-pointer whitespace-nowrap"
-            >
-              <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
-              <span>ESCOLHER PLANO</span>
-            </a>
-
-            <button
-              type="button"
-              onClick={() => setIsFloatingBarDismissed(true)}
-              aria-label="Minimizar barra de oferta"
-              className="w-9 h-10 rounded-[10px] text-[#6e5f70] hover:text-[#29202A] hover:bg-[#FFF6FA] flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 11. RODAPÉ */}
-      <footer className="w-full bg-[#29202A] text-white pt-8 footer-safe-space px-[16px]">
-        <div className="max-w-[1140px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[13px]">
-          <p className="text-white/85 text-center sm:text-left">
-            © 2026 Coleção Planner 2027. Todos os direitos reservados • Produto 100% Digital.
+      {/* RODAPÉ DISCRETO */}
+      <footer className="w-full bg-[#251B2B] text-white pt-7 footer-safe-space px-4 border-t border-white/10">
+        <div className="max-w-[1140px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[12.5px]">
+          <p className="text-white/80 text-center sm:text-left">
+            © 2026 Kit de Organização e Planejamento 2027 • Coleção Planner 2027. Produto 100%
+            Digital.
           </p>
           <nav
             aria-label="Links institucionais"
@@ -1341,21 +1120,21 @@ export default function App() {
             <button
               type="button"
               onClick={() => setActiveLegalModal('termos')}
-              className="min-h-[44px] px-2.5 inline-flex items-center text-white/90 hover:text-[#FCE8F1] transition-colors cursor-pointer"
+              className="min-h-[44px] px-2.5 inline-flex items-center text-white/85 hover:text-white transition-colors cursor-pointer"
             >
               Termos de Uso
             </button>
             <button
               type="button"
               onClick={() => setActiveLegalModal('privacidade')}
-              className="min-h-[44px] px-2.5 inline-flex items-center text-white/90 hover:text-[#FCE8F1] transition-colors cursor-pointer"
+              className="min-h-[44px] px-2.5 inline-flex items-center text-white/85 hover:text-white transition-colors cursor-pointer"
             >
               Política de Privacidade
             </button>
             <button
               type="button"
               onClick={() => setActiveLegalModal('contato')}
-              className="min-h-[44px] px-2.5 inline-flex items-center text-white/90 hover:text-[#FCE8F1] transition-colors cursor-pointer"
+              className="min-h-[44px] px-2.5 inline-flex items-center text-white/85 hover:text-white transition-colors cursor-pointer"
             >
               Contato
             </button>
@@ -1364,17 +1143,13 @@ export default function App() {
       </footer>
 
       {/* POPUP ESTRATÉGICO DE UPGRADE (Exibido apenas ao clicar em comprar o Kit Básico) */}
-      {isUpsellModalOpen && (
-        <Suspense fallback={null}>
-          <UpsellModal
-            isOpen={isUpsellModalOpen}
-            locationSearch={locationSearch}
-            onClose={() => setIsUpsellModalOpen(false)}
-            onAcceptUpgrade={handleAcceptUpgrade}
-            onDeclineUpgrade={handleDeclineUpgrade}
-          />
-        </Suspense>
-      )}
+      <UpsellModal
+        isOpen={isUpsellModalOpen}
+        locationSearch={locationSearch}
+        onClose={() => setIsUpsellModalOpen(false)}
+        onAcceptUpgrade={handleAcceptUpgrade}
+        onDeclineUpgrade={handleDeclineUpgrade}
+      />
 
       {/* Modal Institucional / Suporte */}
       {activeLegalModal && (
