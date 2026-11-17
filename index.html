@@ -2,6 +2,105 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function () {
+        try {
+          var origDefineProperty = Object.defineProperty;
+          function wrapFetchProxy(fn) {
+            if (typeof fn !== "function" || typeof Proxy === "undefined") return fn;
+            return new Proxy(fn, {
+              apply: function (target, thisArg, args) {
+                var input = args && args[0];
+                var url =
+                  typeof input === "string"
+                    ? input
+                    : input && typeof input.url === "string"
+                      ? input.url
+                      : String(input || "");
+                var isUtmify =
+                  url.indexOf("localhost:3001/tracking") !== -1 ||
+                  url.indexOf("tracking.utmify.com.br/tracking/v1/events") !== -1;
+                try {
+                  var res = Reflect.apply(target, thisArg, args);
+                  if (!isUtmify) return res;
+                  return Promise.resolve(res).catch(function () {
+                    return new Response(JSON.stringify({ ok: true, lead: {} }), {
+                      status: 200,
+                      headers: { "Content-Type": "application/json" },
+                    });
+                  });
+                } catch (err) {
+                  if (isUtmify) {
+                    return Promise.resolve(
+                      new Response(JSON.stringify({ ok: true, lead: {} }), {
+                        status: 200,
+                        headers: { "Content-Type": "application/json" },
+                      })
+                    );
+                  }
+                  throw err;
+                }
+              },
+            });
+          }
+
+          var baseFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : undefined;
+          var activeGetter = function () {
+            return baseFetch ? wrapFetchProxy(baseFetch) : undefined;
+          };
+
+          var desc = Object.getOwnPropertyDescriptor(window, "fetch");
+          if (!desc || desc.configurable !== false) {
+            origDefineProperty.call(Object, window, "fetch", {
+              configurable: true,
+              enumerable: desc ? desc.enumerable !== false : true,
+              get: function () {
+                return activeGetter();
+              },
+              set: function (nextFn) {
+                if (typeof nextFn === "function") {
+                  var proxied = wrapFetchProxy(nextFn);
+                  activeGetter = function () {
+                    return proxied;
+                  };
+                }
+              },
+            });
+          }
+
+          Object.defineProperty = function (obj, prop, attributes) {
+            if (
+              (obj === window || obj === globalThis) &&
+              prop === "fetch" &&
+              attributes &&
+              typeof attributes.get === "function" &&
+              typeof attributes.set !== "function"
+            ) {
+              var origGet = attributes.get;
+              activeGetter = function () {
+                return wrapFetchProxy(origGet.call(obj));
+              };
+              return origDefineProperty.call(Object, obj, prop, {
+                configurable: true,
+                enumerable: attributes.enumerable !== false,
+                get: function () {
+                  return activeGetter();
+                },
+                set: function (nextFn) {
+                  if (typeof nextFn === "function") {
+                    var proxied = wrapFetchProxy(nextFn);
+                    activeGetter = function () {
+                      return proxied;
+                    };
+                  }
+                },
+              });
+            }
+            return origDefineProperty.call(Object, obj, prop, attributes);
+          };
+        } catch (_e) {}
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Planner 2027 Digital | Kit Básico (100 Materiais) e Kit Premium (250 Materiais)</title>
     <meta

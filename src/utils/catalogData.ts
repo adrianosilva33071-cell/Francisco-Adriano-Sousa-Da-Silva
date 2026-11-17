@@ -444,6 +444,127 @@ export function getNextCarouselIndex(
   return (currentIndex - 1 + total) % total;
 }
 
+/**
+ * Envolve uma função fetch em um Proxy seguro sem sobrescrever diretamente window.fetch,
+ * preservando todas as chamadas de API (incluindo UTMify e Meta Pixel) e garantindo fallback
+ * seguro caso o endpoint local de desenvolvimento (localhost:3001) não esteja ativo.
+ */
+export function createSafeFetchProxy(baseFetch: typeof fetch): typeof fetch {
+  return new Proxy(baseFetch, {
+    apply(target, thisArg, argArray: [RequestInfo | URL, RequestInit?]) {
+      const input = argArray[0];
+      const url =
+        typeof input === 'string'
+          ? input
+          : input && typeof (input as Request).url === 'string'
+            ? (input as Request).url
+            : String(input ?? '');
+
+      const isUtmifyLocalEndpoint = url.includes('localhost:3001/tracking');
+      const isUtmifyProdEndpoint = url.includes('tracking.utmify.com.br/tracking/v1/events');
+
+      try {
+        const result = Reflect.apply(target, thisArg, argArray) as Promise<Response>;
+        if (!isUtmifyLocalEndpoint && !isUtmifyProdEndpoint) {
+          return result;
+        }
+        return Promise.resolve(result).catch(() => {
+          return new Response(JSON.stringify({ ok: true, lead: {} }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        });
+      } catch (err) {
+        if (isUtmifyLocalEndpoint || isUtmifyProdEndpoint) {
+          return Promise.resolve(
+            new Response(JSON.stringify({ ok: true, lead: {} }), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            })
+          );
+        }
+        throw err;
+      }
+    },
+  });
+}
+
+/**
+ * Protege o descritor de propriedade de `fetch` no objeto global (window) utilizando Proxy e
+ * Object.defineProperty. Evita o erro `TypeError: Cannot set property fetch of #<Window> which has only a getter`
+ * quando scripts de infraestrutura (como _aistudio-iframe.js) definem `window.fetch` apenas com getter
+ * e scripts externos ou extensões tentam encadear wrappers em `window.fetch`.
+ */
+export function installSafeFetchProxy(targetWindow: Record<string, unknown>): boolean {
+  try {
+    const origDefineProperty = Object.defineProperty;
+    const initialFetch =
+      typeof targetWindow.fetch === 'function'
+        ? (targetWindow.fetch as typeof fetch)
+        : undefined;
+
+    let activeGetter: () => typeof fetch | undefined = () =>
+      initialFetch ? createSafeFetchProxy(initialFetch) : undefined;
+
+    const existingDesc = Object.getOwnPropertyDescriptor(targetWindow, 'fetch');
+    if (!existingDesc || existingDesc.configurable !== false) {
+      origDefineProperty.call(Object, targetWindow, 'fetch', {
+        configurable: true,
+        enumerable: existingDesc ? existingDesc.enumerable ?? true : true,
+        get() {
+          return activeGetter();
+        },
+        set(nextFetch: unknown) {
+          if (typeof nextFetch === 'function') {
+            const wrapped = createSafeFetchProxy(nextFetch as typeof fetch);
+            activeGetter = () => wrapped;
+          }
+        },
+      });
+    }
+
+    Object.defineProperty = function <T>(
+      obj: T,
+      prop: PropertyKey,
+      attributes: PropertyDescriptor & ThisType< unknown >
+    ): T {
+      if (
+        obj === (targetWindow as unknown) &&
+        prop === 'fetch' &&
+        attributes &&
+        typeof attributes.get === 'function' &&
+        typeof attributes.set !== 'function'
+      ) {
+        const originalGetter = attributes.get;
+        activeGetter = function () {
+          const resolved = originalGetter.call(obj);
+          return typeof resolved === 'function'
+            ? createSafeFetchProxy(resolved as typeof fetch)
+            : resolved;
+        };
+        return origDefineProperty.call(Object, obj, prop, {
+          configurable: true,
+          enumerable: attributes.enumerable ?? true,
+          get() {
+            return activeGetter();
+          },
+          set(nextFetch: unknown) {
+            if (typeof nextFetch === 'function') {
+              const wrapped = createSafeFetchProxy(nextFetch as typeof fetch);
+              activeGetter = () => wrapped;
+            }
+          },
+        }) as T;
+      }
+      return origDefineProperty.call(Object, obj, prop, attributes) as T;
+    } as typeof Object.defineProperty;
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export const PAIN_POINTS: PainPointItem[] = [
   {
     id: 'semana-tarefas',

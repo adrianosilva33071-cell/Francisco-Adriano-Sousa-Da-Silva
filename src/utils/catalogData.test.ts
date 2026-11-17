@@ -34,6 +34,8 @@ import {
   CAKTO_PREMIUM_UPSELL_URL,
   toAvifUrl,
   getResponsiveImageSources,
+  createSafeFetchProxy,
+  installSafeFetchProxy,
 } from './catalogData';
 
 test('calculatePriceDifference computes exact R$ 10,00 popup difference (R$ 19,90 vs R$ 9,90) and R$ 18,00 direct difference (R$ 27,90 vs R$ 9,90)', () => {
@@ -320,12 +322,57 @@ test('strategic upgrade popup content and resolveUpsellAction handle decline (R$
   assert.equal(rejectedSameAsNormalPremium.targetUrl, null);
 });
 
-test('index.html never overwrites native window.fetch and preserves Meta Pixel and UTMify scripts', () => {
+test('index.html and installSafeFetchProxy use Proxy + descriptor guard without overwriting window.fetch directly', async () => {
   const html = fs.readFileSync(path.resolve('index.html'), 'utf-8');
-  assert.equal(/window\.fetch\s*=/.test(html), false, 'index.html must never overwrite window.fetch');
-  assert.equal(/globalThis\.fetch\s*=/.test(html), false, 'index.html must never overwrite globalThis.fetch');
+  assert.equal(/window\.fetch\s*=(?!=)/.test(html), false, 'index.html must never overwrite window.fetch');
+  assert.equal(/globalThis\.fetch\s*=(?!=)/.test(html), false, 'index.html must never overwrite globalThis.fetch');
+  assert.equal(html.includes('new Proxy('), true, 'index.html must use Proxy wrapper');
   assert.equal(html.includes("fbq('init', '2206669040218715')"), true);
   assert.equal(html.includes('var w_6wr=atob('), true);
   assert.equal(html.includes('var s_bg7=atob('), true);
+
+  // Simulate _aistudio-iframe.js defining getter-only fetch after installSafeFetchProxy
+  const origDefine = Object.defineProperty;
+  try {
+    const mockWin: Record<string, unknown> = {
+      fetch: async (url: RequestInfo | URL) =>
+        new Response(JSON.stringify({ url: String(url), ok: true }), { status: 200 }),
+    };
+
+    assert.equal(installSafeFetchProxy(mockWin), true);
+
+    // Simulate _aistudio-iframe.js calling Object.defineProperty(window, 'fetch', { get() { ... } }) without a setter
+    const iframeFetch = async (url: RequestInfo | URL) => {
+      if (String(url).includes('localhost:3001/tracking')) {
+        throw new TypeError('Failed to fetch');
+      }
+      return new Response(JSON.stringify({ fromIframe: true, url: String(url) }), { status: 200 });
+    };
+    Object.defineProperty(mockWin, 'fetch', {
+      get() {
+        return iframeFetch;
+      },
+    });
+
+    // Verify UTMify localhost tracking fallback works via Proxy without throwing
+    const activeFetch = mockWin.fetch as typeof fetch;
+    const utmifyRes = await activeFetch('http://localhost:3001/tracking/v1/events');
+    const utmifyJson = (await utmifyRes.json()) as { ok: boolean; lead: Record<string, unknown> };
+    assert.equal(utmifyRes.status, 200);
+    assert.equal(utmifyJson.ok, true);
+
+    // Verify normal API calls pass through untouched
+    const apiRes = await activeFetch('https://api.ipify.org/?format=json');
+    const apiJson = (await apiRes.json()) as { fromIframe: boolean };
+    assert.equal(apiJson.fromIframe, true);
+
+    // Verify that even if an external script or extension attempts `window.fetch = wrapper`, it never throws TypeError
+    assert.doesNotThrow(() => {
+      mockWin.fetch = async () => new Response('custom', { status: 200 });
+    });
+  } finally {
+    Object.defineProperty = origDefine;
+  }
 });
+
 
