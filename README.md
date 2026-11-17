@@ -1,6 +1,6 @@
 # Coleção Planner 2027 — Página de Vendas Oficial
 
-Página de vendas de alta conversão (Mobile-First) da **Coleção Planner 2027**, desenvolvida para apresentação comercial e venda dos pacotes **Kit Básico (R$ 9,90 — 50 materiais)** e **Kit Premium (R$ 29,90 — 150 materiais + 6 bônus complementares + suporte humanizado)** com checkout integrado à **Cakto** e rastreamento **UTMify**.
+Página de vendas de alta conversão (Mobile-First) da **Coleção Planner 2027**, desenvolvida para apresentação comercial e venda dos pacotes **Kit Básico (R$ 9,90 — 100 materiais)** e **Kit Premium (R$ 27,90 — 250 materiais + 6 bônus complementares + suporte humanizado)** com checkout integrado à **Cakto** e rastreamento **UTMify**.
 
 ---
 
@@ -10,8 +10,7 @@ Página de vendas de alta conversão (Mobile-First) da **Coleção Planner 2027*
 - **Vite 8** (bundler rápido e otimizado para produção)
 - **Tailwind CSS v4** (`@tailwindcss/vite`)
 - **Lucide React** (ícones vetoriais leves)
-- **Imagens otimizadas em WebP** (`public/assets/planners/` e `public/assets/cloned/`)
-- **UTMify Scripts** (rastreamento automático de UTMs e Pixel configurado no `index.html`)
+- **Imagens otimizadas em WebP e AVIF** (`public/assets/planners/`)
 
 ---
 
@@ -77,9 +76,9 @@ Esta página de vendas **não exige nenhuma variável de ambiente para funcionar
 - O domínio canônico (`<link rel="canonical">` e `og:url`) é detectado **automaticamente** em tempo de execução através do navegador (`window.location.origin`), adaptando-se sozinho ao endereço gerado pela Vercel ou ao seu domínio próprio.
 - Os links de pagamento da **Cakto** já estão configurados diretamente em `src/utils/catalogData.ts`:
   - **Kit Básico (R$ 9,90 — 100 materiais digitais)**: `https://pay.cakto.com.br/85z54d3_1324900`
-  - **Kit Premium — Compra Direta (R$ 29,90 — 250 materiais digitais)**: `https://pay.cakto.com.br/n8msmyw`
+  - **Kit Premium — Compra Direta (R$ 27,90 — 250 materiais digitais)**: `https://pay.cakto.com.br/n8msmyw`
   - **Kit Premium — Upgrade Exclusivo pelo Popup (R$ 19,90 — 250 materiais digitais)**: `https://pay.cakto.com.br/xhx8yqu`
-- Os scripts da **UTMify** (UTMs + Pixel `6af92e485fc5fd7c2f66ef1f`) já estão configurados no `<head>` do arquivo `index.html`.
+- Os scripts da **UTMify** (UTMs + Pixel `6afbb2a4942395602d125bd0`) e o **Meta Pixel (`1695929878536932`)** já estão configurados no `<head>` do arquivo `index.html`.
 - Caso deseje fixar manualmente um domínio definitivo após a publicação, a variável opcional `VITE_APP_URL` já está preparada e comentada no `.env.example`.
 
 ---

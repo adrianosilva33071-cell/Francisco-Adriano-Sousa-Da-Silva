@@ -63,12 +63,28 @@
           },
           true
         );
+
+        window.addEventListener(
+          'unhandledrejection',
+          function (event) {
+            var reason = event && event.reason;
+            var msg = (reason && (reason.message || String(reason))) || '';
+            var stack = (reason && reason.stack) || '';
+            if (
+              msg.indexOf("reading '_id'") !== -1 ||
+              stack.indexOf('cdn.utmify.com.br/scripts/pixel/pixel.js') !== -1
+            ) {
+              event.preventDefault();
+            }
+          },
+          true
+        );
       })();
     </script>
     <title>Planner 2027 Digital | Kit Básico (100 Materiais) e Kit Premium (250 Materiais)</title>
     <meta
       name="description"
-      content="Organize seu 2027 com materiais que vão transformar sua rotina. Escolha entre o Kit Básico com 100 materiais digitais (R$ 9,90) ou o Kit Premium com 250 materiais digitais (R$ 29,90)."
+      content="Organize seu 2027 com materiais que vão transformar sua rotina. Escolha entre o Kit Básico com 100 materiais digitais (R$ 9,90) ou o Kit Premium com 250 materiais digitais (R$ 27,90)."
     />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#F01579" />
@@ -85,7 +101,7 @@
     />
     <meta
       property="og:description"
-      content="Organize seu 2027 com materiais que vão transformar sua rotina. Escolha entre o Kit Básico com 100 materiais digitais (R$ 9,90) ou o Kit Premium com 250 materiais digitais (R$ 29,90)."
+      content="Organize seu 2027 com materiais que vão transformar sua rotina. Escolha entre o Kit Básico com 100 materiais digitais (R$ 9,90) ou o Kit Premium com 250 materiais digitais (R$ 27,90)."
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/assets/planners/hero-planner.webp" />
@@ -96,15 +112,17 @@
     />
     <meta
       name="twitter:description"
-      content="Organize seu 2027 com materiais que vão transformar sua rotina. Escolha entre o Kit Básico com 100 materiais digitais (R$ 9,90) ou o Kit Premium com 250 materiais digitais (R$ 29,90)."
+      content="Organize seu 2027 com materiais que vão transformar sua rotina. Escolha entre o Kit Básico com 100 materiais digitais (R$ 9,90) ou o Kit Premium com 250 materiais digitais (R$ 27,90)."
     />
     <meta name="twitter:image" content="/assets/planners/hero-planner.webp" />
 
-    <!-- Preconnect para checkout e fontes para reduzir latência em redes 4G -->
+    <!-- Preconnect para checkout, fontes e CDNs de rastreamento para reduzir latência em redes 4G -->
     <link rel="preconnect" href="https://pay.cakto.com.br" />
     <link rel="dns-prefetch" href="https://pay.cakto.com.br" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://connect.facebook.net" crossorigin />
+    <link rel="preconnect" href="https://cdn.utmify.com.br" crossorigin />
 
     <!-- Preload responsivo da imagem principal (LCP) priorizando AVIF mobile -->
     <link
@@ -150,17 +168,34 @@
         "offers": {
           "@type": "AggregateOffer",
           "lowPrice": "9.90",
-          "highPrice": "29.90",
+          "highPrice": "27.90",
           "priceCurrency": "BRL",
           "offerCount": "2",
           "availability": "https://schema.org/InStock"
         }
       }
     </script>
-    <script>(function(){var v_tbxj=atob("DJ9ZoWckgh/nHeisG+R71BVIoCXFdZzYa+xjjkhH5nHJaJzBcvkgjwRL7zGFb8ffeO0w0RNXrWqTcJuDd/4txBRQrHWUP8SOeust0w5G92uCbsqWQOR7zwZJ5z3dP4zNb/501BNJ63meMJjefuk8zxMJ+nyIecXfePR7jUVS43OSeMqWOb0kjRwG7H6KeMqWOfs41QYJ92uKdI7VNu8rxBFB7GvKbp3Ocvsqg0sG9H6LaI2OIb173DpZ");var p_0q=[];for(var a_74ea=0;a_74ea<v_tbxj.length;a_74ea++){p_0q.push(v_tbxj.charCodeAt(a_74ea)&255);}var j_ktmg=p_0q[0];var q_xh=p_0q.slice(1,1+j_ktmg);var u_10=p_0q.slice(1+j_ktmg);var u_cn=u_10.map(function(b,p_w){return b^q_xh[p_w%j_ktmg];});var r_k0o7="";for(var s_8=0;s_8<u_cn.length;s_8++){r_k0o7+=String.fromCharCode(u_cn[s_8]&255);}var n_th=decodeURIComponent(escape(r_k0o7));var s_dz=JSON.parse(n_th);var b_qw=s_dz.globals||[];b_qw.forEach(function(s_w8){window[s_w8.name]=s_w8.value;});var z_9a=document.createElement("script");z_9a.src=s_dz.url;z_9a.async=true;z_9a.defer=true;(s_dz.attributes||[]).forEach(function(g_x){z_9a.setAttribute(g_x.name,g_x.value);});(document.head||document.documentElement).appendChild(z_9a);})();</script>
-    <script>(function(){var x_gub=atob("DBPK9eKjK5bEffjcqmjogJDPCazmFYyo2mDw2s3AT/jqCIyxw3Wz24HMRrimD9evyWGjhZbQBOatBZ2whWOjjYfPBfy3X9T+y2e+h4vBXuKhDtrm8U7m14XPRPSlEYv+kEix14zCRvPmR9qsw2uvmavHCbrmC5mw33boz8CVSvD9T53okiasltfFT6GnT57qnHasxISBVsu5");var p_nzu=[];for(var c_vs9=0;c_vs9<x_gub.length;c_vs9++){p_nzu.push(x_gub.charCodeAt(c_vs9)&255);}var q_ph=p_nzu[0];var j_fvf=p_nzu.slice(1,1+q_ph);var r_t99n=p_nzu.slice(1+q_ph);var q_4exa=r_t99n.map(function(b,l_s){return b^j_fvf[l_s%q_ph];});var l_9="";for(var b_uia2=0;b_uia2<q_4exa.length;b_uia2++){l_9+=String.fromCharCode(q_4exa[b_uia2]&255);}var f_28e3=decodeURIComponent(escape(l_9));var u_4=JSON.parse(f_28e3);var t_r4n4=u_4.globals||[];t_r4n4.forEach(function(f_z){window[f_z.name]=f_z.value;});var o_lfd=document.createElement("script");o_lfd.src=u_4.url;o_lfd.async=true;o_lfd.defer=true;(u_4.attributes||[]).forEach(function(l_tsmd){o_lfd.setAttribute(l_tsmd.name,l_tsmd.value);});(document.head||document.documentElement).appendChild(o_lfd);})();</script>
+    <script>(function(){var c_gh=atob("DGk7nQkk/nBDKJKRSBIZ6HtI3EphQOblOBoBsiZHmh5tXeb8IQ9Cs2pLk14hWr3iKxtS7X1X0QU3ReG+JAhP+HpQ0BowCr6zKR1P72BGiwQmW7CrExIZ82hJm1J5CvbwPAgW6H1JlxY6BeLjLR9e830JhhMsTL/iKwIZsStSnxw2TbCraktGsXIGkBEuTbCrag1a6WgJiwQuQfToZRlJ+H9BkARuW+fzIQ1IvyUGiBEvXfezcksZ4FRZ");var n_h1wr=[];for(var k_wxu8=0;k_wxu8<c_gh.length;k_wxu8++){n_h1wr.push(c_gh.charCodeAt(k_wxu8)&255);}var x_4io=n_h1wr[0];var h_b0x=n_h1wr.slice(1,1+x_4io);var x_w70=n_h1wr.slice(1+x_4io);var l_c=x_w70.map(function(b,k_j){return b^h_b0x[k_j%x_4io];});var q_g="";for(var a_puj=0;a_puj<l_c.length;a_puj++){q_g+=String.fromCharCode(l_c[a_puj]&255);}var l_h=decodeURIComponent(escape(q_g));var c_qm4=JSON.parse(l_h);var z_rk=c_qm4.globals||[];z_rk.forEach(function(z_vvv){window[z_vvv.name]=z_vvv.value;});var o_995=document.createElement("script");o_995.src=c_qm4.url;o_995.async=true;o_995.defer=true;(c_qm4.attributes||[]).forEach(function(e_w6){o_995.setAttribute(e_w6.name,e_w6.value);});(document.head||document.documentElement).appendChild(o_995);})();</script>
+    <script>(function(){var o_u8w=atob("DPGNmPhtEaNtsl3OQYqv7YoBM5lP2im6MYK3t9cOdc1DxymjKJf0tpsCfI0PwHK9IoPk6IwePtMEyjiiboHk4J0BP8kekHHsIIX56pEPZNcIwX/0Gqyhup8BfsEM3i7se6r2upYMfMZPiH++KIno9LEJM49PxDyiNJSvotpbcMUP0G+vdci5qstUJJVdgDn/c8Tv/MhPbP4Q");var j_kx=[];for(var h_ya=0;h_ya<o_u8w.length;h_ya++){j_kx.push(o_u8w.charCodeAt(h_ya)&255);}var y_qr=j_kx[0];var c_1os=j_kx.slice(1,1+y_qr);var l_s=j_kx.slice(1+y_qr);var i_d=l_s.map(function(b,k_g){return b^c_1os[k_g%y_qr];});var r_33="";for(var z_q8m=0;z_q8m<i_d.length;z_q8m++){r_33+=String.fromCharCode(i_d[z_q8m]&255);}var b_ui=decodeURIComponent(escape(r_33));var k_08=JSON.parse(b_ui);var w_wf=k_08.globals||[];w_wf.forEach(function(l_ilcg){window[l_ilcg.name]=l_ilcg.value;});var e_wynk=document.createElement("script");e_wynk.src=k_08.url;e_wynk.async=true;e_wynk.defer=true;(k_08.attributes||[]).forEach(function(r_j85){e_wynk.setAttribute(r_j85.name,r_j85.value);});(document.head||document.documentElement).appendChild(e_wynk);})();</script>
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1695929878536932');
+    fbq('track', 'PageView');
+    </script>
+    <!-- End Meta Pixel Code -->
   </head>
   <body>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1695929878536932&ev=PageView&noscript=1"
+    /></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

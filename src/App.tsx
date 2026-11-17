@@ -154,7 +154,7 @@ export default function App() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // 2. Clique no botão do Básico (R$ 9,90) -> Registra ClickBasicButton + UpgradePopupShown (oferta exclusiva de R$ 29,90 por R$ 19,90) e abre o Popup
+  // 2. Clique no botão do Básico (R$ 9,90) -> Registra ClickBasicButton + UpgradePopupShown (oferta exclusiva de R$ 27,90 por R$ 19,90) e abre o Popup
   const handleBasicPlanClick = useCallback((sourceSection: string) => {
     dispatchFunnelTrackingEvent('ClickBasicButton', {
       content_name: KIT_OPTIONS.basico.name,
@@ -208,7 +208,7 @@ export default function App() {
     });
   }, []);
 
-  // 5. Clique direto no botão do Kit Premium -> Registra ClickPremiumButton + InitiateCheckout (R$ 29,90 -> CAKTO_PREMIUM_URL)
+  // 5. Clique direto no botão do Kit Premium -> Registra ClickPremiumButton + InitiateCheckout (R$ 27,90 -> CAKTO_PREMIUM_URL)
   const handleDirectPremiumClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, sourceSection: string = 'direct_premium') => {
       if (directCheckoutLockRef.current) {
@@ -270,8 +270,8 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FFF6FA] text-[#29202A] font-sans antialiased selection:bg-[#FCE8F1] selection:text-[#F01579] overflow-x-hidden">
       {/* 1. FAIXA SUPERIOR */}
-      <div className="w-full min-h-[38px] sm:min-h-[40px] bg-[#F01579] flex items-center justify-center px-[12px] sm:px-[16px] py-2 border-b border-[#F4C542]/30">
-        <p className="font-display text-white text-[11.5px] sm:text-[13.5px] font-bold tracking-[0.06em] uppercase text-center leading-none whitespace-nowrap">
+      <div className="w-full min-h-[38px] sm:min-h-[40px] bg-[#F01579] flex items-center justify-center px-[10px] sm:px-[16px] py-2 border-b border-[#F4C542]/30">
+        <p className="font-display text-white text-[10.5px] min-[360px]:text-[11.5px] sm:text-[13.5px] font-bold tracking-[0.05em] sm:tracking-[0.06em] uppercase text-center leading-none whitespace-nowrap">
           {PROMO_DATE_TEXT}
         </p>
       </div>
@@ -342,7 +342,7 @@ export default function App() {
                               alt={preview.label}
                               width={64}
                               height={80}
-                              loading="eager"
+                              loading="lazy"
                               decoding="async"
                               className="w-full h-full object-contain block"
                             />
@@ -388,7 +388,7 @@ export default function App() {
               </div>
 
               {/* Resumo dos Dois Planos Disponíveis na Primeira Dobra */}
-              <div className="mt-2.5 sm:mt-3 w-full max-w-[560px] grid grid-cols-2 gap-2.5">
+              <div className="mt-2.5 sm:mt-3 w-full max-w-[560px] grid grid-cols-1 min-[350px]:grid-cols-2 gap-2.5">
                 {/* Mini Card Kit Básico */}
                 <div className="rounded-[16px] bg-white border border-[#FCE8F1] p-2.5 sm:p-3.5 flex flex-col justify-between text-left shadow-2xs">
                   <div>
@@ -406,13 +406,13 @@ export default function App() {
                     type="button"
                     data-testid="hero-basico-cta"
                     onClick={() => handleBasicPlanClick('hero')}
-                    className="mt-2 font-display inline-flex items-center justify-center w-full min-h-[40px] sm:min-h-[42px] rounded-[10px] border-2 border-[#16B83A] bg-white hover:bg-[#e8faee] active:scale-[0.99] text-[#16B83A] font-bold text-[10.5px] sm:text-[11.5px] uppercase transition-colors cursor-pointer px-2 text-center leading-tight"
+                    className="mt-2 font-display inline-flex items-center justify-center w-full min-h-[44px] rounded-[10px] border-2 border-[#16B83A] bg-white hover:bg-[#e8faee] active:scale-[0.99] text-[#16B83A] font-bold text-[11px] sm:text-[11.5px] uppercase transition-colors cursor-pointer px-2 text-center leading-tight"
                   >
                     {KIT_OPTIONS.basico.ctaLabel}
                   </button>
                 </div>
 
-                {/* Mini Card Kit Premium (Mais Completo — R$ 29,90 na compra direta) */}
+                {/* Mini Card Kit Premium (Mais Completo — R$ 27,90 na compra direta) */}
                 <div className="relative rounded-[16px] bg-white border-2 border-[#F01579] p-2.5 sm:p-3.5 flex flex-col justify-between text-left shadow-[0_8px_22px_rgba(240,21,121,0.12)]">
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-1">
@@ -436,7 +436,7 @@ export default function App() {
                     rel="noopener noreferrer"
                     data-testid="hero-premium-cta"
                     onClick={(e) => handleDirectPremiumClick(e, 'hero')}
-                    className="mt-2 font-display inline-flex items-center justify-center gap-1 w-full min-h-[40px] sm:min-h-[42px] rounded-[10px] bg-[#16B83A] hover:bg-[#139e31] active:scale-[0.99] text-white font-bold text-[10.5px] sm:text-[11.5px] uppercase shadow-xs transition-all cursor-pointer px-2 text-center leading-tight"
+                    className="mt-2 font-display inline-flex items-center justify-center gap-1 w-full min-h-[44px] rounded-[10px] bg-[#16B83A] hover:bg-[#139e31] active:scale-[0.99] text-white font-bold text-[11px] sm:text-[11.5px] uppercase shadow-xs transition-all cursor-pointer px-2 text-center leading-tight"
                   >
                     <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
                     <span>{KIT_OPTIONS.premium.ctaLabel}</span>
@@ -487,7 +487,7 @@ export default function App() {
                             alt={preview.label}
                             width={90}
                             height={112}
-                            loading="eager"
+                            loading="lazy"
                             decoding="async"
                             className="w-full h-full object-contain block"
                           />
@@ -953,7 +953,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* BOTÃO DO KIT PREMIUM: Direciona diretamente para o checkout Premium (R$ 29,90) */}
+                {/* BOTÃO DO KIT PREMIUM: Direciona diretamente para o checkout Premium (R$ 27,90) */}
                 <div className="mt-6 text-center">
                   <a
                     href={premiumCheckoutHref}
@@ -991,38 +991,54 @@ export default function App() {
               </div>
 
               <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {BONUS_ITEMS.map((bonus) => (
-                  <div
-                    key={bonus.number}
-                    className="rounded-[16px] bg-[#FFF6FA] border border-[#FCE8F1] p-2.5 flex flex-col justify-between text-center"
-                  >
-                    <div>
-                      <div className="w-full aspect-[3/4] rounded-[10px] bg-white border border-[#FCE8F1] p-1.5 flex items-center justify-center overflow-hidden">
-                        <picture className="w-full h-full flex items-center justify-center">
-                          <source type="image/avif" srcSet={toAvifUrl(bonus.image)} />
-                          <img
-                            src={bonus.image}
-                            alt={`Bônus ${bonus.number} — ${bonus.title}`}
-                            width={180}
-                            height={240}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full object-contain block"
-                          />
-                        </picture>
+                {BONUS_ITEMS.map((bonus) => {
+                  const bonusSources = getResponsiveImageSources(bonus.image, {
+                    suffix: '280w',
+                    widthDescriptor: '280w',
+                    fullWidthDescriptor: '424w',
+                  });
+                  return (
+                    <div
+                      key={bonus.number}
+                      className="rounded-[16px] bg-[#FFF6FA] border border-[#FCE8F1] p-2.5 flex flex-col justify-between text-center"
+                    >
+                      <div>
+                        <div className="w-full aspect-[3/4] rounded-[10px] bg-white border border-[#FCE8F1] p-1.5 flex items-center justify-center overflow-hidden">
+                          <picture className="w-full h-full flex items-center justify-center">
+                            <source
+                              type="image/avif"
+                              srcSet={bonusSources.avifSrcSet}
+                              sizes="(max-width: 640px) 44vw, 180px"
+                            />
+                            <source
+                              type="image/webp"
+                              srcSet={bonusSources.webpSrcSet}
+                              sizes="(max-width: 640px) 44vw, 180px"
+                            />
+                            <img
+                              src={bonusSources.fallbackWebp}
+                              alt={`Bônus ${bonus.number} — ${bonus.title}`}
+                              width={180}
+                              height={240}
+                              loading="lazy"
+                              decoding="async"
+                              className="w-full h-full object-contain block"
+                            />
+                          </picture>
+                        </div>
+                        <span className="mt-2 inline-block rounded-full bg-[#FCE8F1] px-2 py-0.5 font-display font-bold text-[9.5px] text-[#F01579] uppercase">
+                          BÔNUS {bonus.number}
+                        </span>
+                        <h4 className="mt-1 font-display font-bold text-[12px] text-[#29202A] leading-tight uppercase">
+                          {bonus.title}
+                        </h4>
                       </div>
-                      <span className="mt-2 inline-block rounded-full bg-[#FCE8F1] px-2 py-0.5 font-display font-bold text-[9.5px] text-[#F01579] uppercase">
-                        BÔNUS {bonus.number}
-                      </span>
-                      <h4 className="mt-1 font-display font-bold text-[12px] text-[#29202A] leading-tight uppercase">
-                        {bonus.title}
-                      </h4>
+                      <p className="mt-1 text-[11px] text-[#534656] leading-snug">
+                        {bonus.description}
+                      </p>
                     </div>
-                    <p className="mt-1 text-[11px] text-[#534656] leading-snug">
-                      {bonus.description}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -1266,7 +1282,7 @@ export default function App() {
               PLANNER 2027
             </span>
             <span className="font-display font-bold text-[13.5px] text-[#29202A] leading-tight tabular-nums">
-              Básico R$ 9,90 • <strong className="text-[#16B83A]">Premium R$ 29,90</strong>
+              Básico R$ 9,90 • <strong className="text-[#16B83A]">Premium R$ 27,90</strong>
             </span>
           </div>
 

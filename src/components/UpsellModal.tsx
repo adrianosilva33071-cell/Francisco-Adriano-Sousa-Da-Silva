@@ -190,7 +190,7 @@ export function UpsellModal({
             <p className="mt-1.5 text-[11px] text-[#6e5f70]">Opção econômica inicial</p>
           </div>
 
-          {/* Card PREMIUM (Destaque Visual + De R$ 29,90 por R$ 19,90 exclusivamente no popup) */}
+          {/* Card PREMIUM (Destaque Visual + De R$ 27,90 por R$ 19,90 exclusivamente no popup) */}
           <div className="relative rounded-[16px] bg-gradient-to-b from-[#FCE8F1]/70 to-white border-2 border-[#F01579] p-2.5 sm:p-3 flex flex-col justify-between shadow-2xs">
             <div>
               <div className="flex items-center justify-between gap-1">

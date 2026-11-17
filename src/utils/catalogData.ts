@@ -83,7 +83,7 @@ export interface KitOption {
 /**
  * Endereços reais de checkout configurados na operação (Cakto):
  * 1. Kit Básico (R$ 9,90 — 100 materiais digitais): https://pay.cakto.com.br/85z54d3_1324900
- * 2. Compra direta do Kit Premium (R$ 29,90 — 250 materiais digitais): https://pay.cakto.com.br/n8msmyw
+ * 2. Compra direta do Kit Premium (R$ 27,90 — 250 materiais digitais): https://pay.cakto.com.br/n8msmyw
  * 3. Upgrade exclusivo pelo popup para o Kit Premium (R$ 19,90 — 250 materiais digitais): https://pay.cakto.com.br/xhx8yqu
  */
 export const CAKTO_BASICO_URL = 'https://pay.cakto.com.br/85z54d3_1324900';
@@ -244,8 +244,8 @@ export const UPSELL_MODAL_CONTENT: UpsellModalContent = {
   headline: 'ESPERE! TEMOS UMA OFERTA ESPECIAL PARA VOCÊ!',
   subheadline: 'Por apenas R$ 19,90, leve o Kit Premium com 250 materiais digitais!',
   priceDifferenceCallout:
-    '250 materiais digitais + 6 bônus exclusivos — R$ 29,90 normalmente, mas com oferta especial de R$ 19,90 no total pelo popup!',
-  highlightBadge: 'OFERTA ESPECIAL EXCLUSIVA DO POPUP • DE R$ 29,90 POR R$ 19,90',
+    '250 materiais digitais + 6 bônus exclusivos — R$ 27,90 normalmente, mas com oferta especial de R$ 19,90 no total pelo popup!',
+  highlightBadge: 'OFERTA ESPECIAL EXCLUSIVA DO POPUP • DE R$ 27,90 POR R$ 19,90',
   basicComparison: {
     name: 'BÁSICO',
     materialsLabel: '100 materiais digitais',
@@ -255,11 +255,11 @@ export const UPSELL_MODAL_CONTENT: UpsellModalContent = {
   premiumComparison: {
     name: 'PREMIUM',
     materialsLabel: '250 materiais digitais',
-    normalPrice: 'R$ 29,90',
-    normalPriceNumeric: 29.9,
+    normalPrice: 'R$ 27,90',
+    normalPriceNumeric: 27.9,
     price: 'R$ 19,90',
     priceNumeric: 19.9,
-    differenceBadge: 'R$ 29,90 normalmente • R$ 19,90 pelo popup',
+    differenceBadge: 'R$ 27,90 normalmente • R$ 19,90 pelo popup',
   },
   acceptCtaLabel: 'SIM! QUERO O PREMIUM POR R$ 19,90',
   declineCtaLabel: 'NÃO, PREFIRO O BÁSICO POR R$ 9,90',
@@ -284,7 +284,7 @@ export function resolveUpsellAction(
   }
 
   const trimmedUpsell = configuredUpsellUrl.trim();
-  // Safeguard: nunca permitir URL vazia, nem o checkout do Básico (R$ 9,90), nem o checkout normal do Premium (R$ 29,90) no upgrade promocional de R$ 19,90
+  // Safeguard: nunca permitir URL vazia, nem o checkout do Básico (R$ 9,90), nem o checkout normal do Premium (R$ 27,90) no upgrade promocional de R$ 19,90
   if (
     !trimmedUpsell ||
     trimmedUpsell === CAKTO_BASICO_URL ||
@@ -366,7 +366,7 @@ export const PLAN_COMPARISON_ROWS: PlanComparisonRow[] = [
   {
     feature: 'Preço',
     basico: 'R$ 9,90',
-    premium: 'R$ 29,90',
+    premium: 'R$ 27,90',
     highlightPremium: true,
   },
   {
@@ -740,8 +740,8 @@ export const KIT_OPTIONS: Record<'basico' | 'premium', KitOption> = {
     badge: 'MAIS COMPLETO',
     idealFor:
       'A coleção mais completa: 250 materiais digitais + 6 bônus incluídos para organizar sua rotina, objetivos, hábitos e vida financeira.',
-    price: 'R$ 29,90',
-    priceNumeric: 29.9,
+    price: 'R$ 27,90',
+    priceNumeric: 27.9,
     paymentNote: 'Pagamento único • Sem mensalidade • Acesso digital • Garantia de 7 dias.',
     includedFeatures: [
       '250 materiais digitais.',
@@ -800,7 +800,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     number: '05',
     question: 'Qual a diferença entre o Kit Básico e o Kit Premium?',
     answer:
-      'O Kit Básico (R$ 9,90) oferece 100 materiais digitais essenciais para planejamento e organização pessoal. O Kit Premium (R$ 29,90) é a opção mais completa, com 250 materiais digitais, incluindo mais ferramentas de planejamento semanal e mensal, controle financeiro, planejamento de metas e materiais complementares.',
+      'O Kit Básico (R$ 9,90) oferece 100 materiais digitais essenciais para planejamento e organização pessoal. O Kit Premium (R$ 27,90) é a opção mais completa, com 250 materiais digitais, incluindo mais ferramentas de planejamento semanal e mensal, controle financeiro, planejamento de metas e materiais complementares.',
   },
   {
     id: 'suporte-humanizado',
