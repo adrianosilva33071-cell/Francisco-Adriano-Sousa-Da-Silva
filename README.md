@@ -78,7 +78,7 @@ Esta página de vendas **não exige nenhuma variável de ambiente para funcionar
   - **Kit Básico (R$ 9,90 — 100 materiais digitais)**: `https://pay.cakto.com.br/85z54d3_1324900`
   - **Kit Premium — Compra Direta (R$ 27,90 — 250 materiais digitais)**: `https://pay.cakto.com.br/n8msmyw`
   - **Kit Premium — Upgrade Exclusivo pelo Popup (R$ 19,90 — 250 materiais digitais)**: `https://pay.cakto.com.br/xhx8yqu`
-- Os scripts da **UTMify** (UTMs + Pixel `6afbb2a4942395602d125bd0`) e o **Meta Pixel (`1695929878536932`)** já estão configurados no `<head>` do arquivo `index.html`.
+- Os scripts de rastreamento **UTMify** (`utms/latest.js` e `pixel.js` com `pixelId: 6afc2b5608a5363c6845f95f`) e **Meta Pixel (`2206669040218715`)** já estão configurados no `<head>` do arquivo `index.html`.
 - Caso deseje fixar manualmente um domínio definitivo após a publicação, a variável opcional `VITE_APP_URL` já está preparada e comentada no `.env.example`.
 
 ---
