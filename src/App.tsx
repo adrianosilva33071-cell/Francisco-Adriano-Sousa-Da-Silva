@@ -192,15 +192,17 @@ export default function App() {
           <div className="max-w-[1080px] mx-auto grid grid-cols-1 md:grid-cols-[1.05fr_1fr] gap-x-10 gap-y-4 md:items-center">
             <div className="text-center md:text-left md:col-start-1 md:row-start-1">
               <p className="inline-block rounded-full bg-blush text-rose-deep px-3 py-1 text-[12.5px] font-semibold tracking-[0.06em] uppercase">
-                Coleção digital · Planner 2027
+                Comece janeiro com tudo planejado
               </p>
               <h1 className="mt-3 font-display font-semibold text-plum text-[26px] min-[360px]:text-[29px] min-[390px]:text-[31px] sm:text-[42px] md:text-[46px] leading-[1.1] tracking-[-0.01em]">
-                Seu 2027 mais organizado começa por{' '}
-                <span className="text-rose whitespace-nowrap">apenas {formatBRL(LOWEST_PRICE)}.</span>
+                Organize 2027 inteiro com{' '}
+                <span className="text-rose">
+                  {KITS.premium.materialsCount} materiais prontos + {KITS.premium.bonusCount} bônus.
+                </span>
               </h1>
               <p className="mt-3 text-muted text-[15.5px] sm:text-[18px] leading-[1.5] max-w-[540px] mx-auto md:mx-0">
-                Materiais digitais prontos para organizar sua rotina, planejar seus objetivos e
-                acompanhar seus hábitos.
+                Rotina, metas, hábitos e finanças em PDF A4: imprima ou use no celular. Você paga uma
+                vez e recebe tudo no e-mail.
               </p>
             </div>
 
@@ -214,31 +216,17 @@ export default function App() {
             </div>
 
             <div ref={heroCtaRef} className="md:col-start-1 md:row-start-2 w-full max-w-[460px] mx-auto md:mx-0">
-              <ul className="grid grid-cols-2 gap-2.5" aria-label="Kits disponíveis">
-                {(['basico', 'premium'] as const).map((id) => {
-                  const kit = KITS[id];
-                  return (
-                    <li
-                      key={id}
-                      className={`rounded-[16px] px-3 py-2.5 text-left ${
-                        kit.badge ? 'bg-plum text-white' : 'bg-white border border-line text-plum'
-                      }`}
-                    >
-                      <p className="text-[13px] font-semibold leading-tight">{kit.name}</p>
-                      <p className={`text-[12.5px] leading-tight ${kit.badge ? 'text-white/80' : 'text-muted'}`}>
-                        {kit.materialsCount} materiais{kit.bonusCount ? ` + ${kit.bonusCount} bônus` : ''}
-                      </p>
-                      <p className="mt-1 font-display font-semibold text-[21px] leading-none">{formatBRL(kit.price)}</p>
-                    </li>
-                  );
-                })}
-              </ul>
+              <p className="text-center md:text-left text-[14px] text-plum">
+                <strong>{KITS.premium.name}</strong> · {KITS.premium.materialsCount} materiais +{' '}
+                {KITS.premium.bonusCount} bônus · pagamento único
+              </p>
+              <CheckoutButton kit={KITS.premium} className="mt-2" />
               <a
                 href="#kits"
-                className="mt-3.5 inline-flex items-center justify-center gap-2 w-full min-h-[56px] rounded-full bg-rose hover:bg-rose-deep text-white font-bold uppercase tracking-[0.02em] text-[16px] shadow-[0_6px_18px_rgba(194,33,130,0.28)] transition-colors"
+                className="mt-2 inline-flex items-center justify-center gap-1.5 w-full min-h-[48px] text-plum font-semibold text-[15px] underline underline-offset-4 decoration-plum/40 hover:decoration-plum"
               >
-                Ver meus kits
-                <ArrowDown className="w-5 h-5" aria-hidden="true" />
+                Ou comece pelo {KITS.basico.name} por {formatBRL(KITS.basico.price)}
+                <ArrowDown className="w-4 h-4" aria-hidden="true" />
               </a>
               <ul className="mt-3 flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-1 text-[13.5px] text-muted">
                 <li className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-rose" aria-hidden="true" />Pagamento único</li>
@@ -249,7 +237,30 @@ export default function App() {
           </div>
         </section>
 
-        {/* 2. O QUE VOCÊ RECEBE */}
+        {/* 2. ESCOLHA SEU KIT — logo depois do topo, para o preço aparecer sem rolar muito */}
+        <section id="kits" ref={kitsRef} className="scroll-mt-4 bg-blush px-4 py-12 sm:py-16">
+          <div className="max-w-[1000px] mx-auto">
+            <SectionHeading
+              eyebrow="Escolha seu kit"
+              title="Dois kits, pagamento único"
+              intro={`Kit Básico por ${formatBRL(KITS.basico.price)} ou Kit Premium por ${formatBRL(KITS.premium.price)}${
+                COMPARISON ? `: ${COMPARISON}.` : '.'
+              }`}
+            />
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-6 items-stretch">
+              {KIT_ORDER.map((id) => (
+                <KitCard key={id} kit={KITS[id]} />
+              ))}
+            </div>
+            <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-[14px] text-muted">
+              <li className="inline-flex items-center gap-1.5"><Lock className="w-4 h-4 text-rose" aria-hidden="true" />Pagamento pela Cakto: Pix ou cartão</li>
+              <li className="inline-flex items-center gap-1.5"><Mail className="w-4 h-4 text-rose" aria-hidden="true" />Acesso digital após a confirmação</li>
+              <li className="inline-flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-rose" aria-hidden="true" />Garantia de 7 dias</li>
+            </ul>
+          </div>
+        </section>
+
+        {/* 3. O QUE VOCÊ RECEBE */}
         <section id="materiais" className="bg-white border-y border-line px-4 py-12 sm:py-16">
           <div className="max-w-[1080px] mx-auto">
             <SectionHeading
@@ -309,31 +320,8 @@ export default function App() {
           </div>
         </section>
 
-        {/* 3. ESCOLHA SEU KIT */}
-        <section id="kits" ref={kitsRef} className="scroll-mt-4 bg-blush px-4 py-12 sm:py-16">
-          <div className="max-w-[1000px] mx-auto">
-            <SectionHeading
-              eyebrow="Escolha seu kit"
-              title="Dois kits, pagamento único"
-              intro={`Kit Básico por ${formatBRL(KITS.basico.price)} ou Kit Premium por ${formatBRL(KITS.premium.price)}${
-                COMPARISON ? `: ${COMPARISON}.` : '.'
-              }`}
-            />
-            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-6 items-stretch">
-              {KIT_ORDER.map((id) => (
-                <KitCard key={id} kit={KITS[id]} />
-              ))}
-            </div>
-            <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-[14px] text-muted">
-              <li className="inline-flex items-center gap-1.5"><Lock className="w-4 h-4 text-rose" aria-hidden="true" />Pagamento pela Cakto: Pix ou cartão</li>
-              <li className="inline-flex items-center gap-1.5"><Mail className="w-4 h-4 text-rose" aria-hidden="true" />Acesso digital após a confirmação</li>
-              <li className="inline-flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-rose" aria-hidden="true" />Garantia de 7 dias</li>
-            </ul>
-          </div>
-        </section>
-
         {/* 4. CONFIANÇA E DÚVIDAS */}
-        <section id="duvidas" className="bg-white border-y border-line px-4 py-12 sm:py-16">
+        <section id="duvidas" className="bg-blush px-4 py-12 sm:py-16">
           <div className="max-w-[1000px] mx-auto">
             <SectionHeading eyebrow="Compra segura" title="Dúvidas rápidas" />
             <div className="mt-8 grid grid-cols-1 md:grid-cols-[0.9fr_1.1fr] gap-6 md:gap-10 md:items-start">

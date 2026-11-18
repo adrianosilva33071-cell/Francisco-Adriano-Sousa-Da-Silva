@@ -54,7 +54,7 @@ test('UTMify: textos de botões que não são checkout não contêm palavras que
   // Lista usada pelo pixel da UTMify para reconhecer botões de checkout pelo texto.
   const keywords = ['comprar', 'finalizar', 'compra', 'confirmar', 'quero ter', 'proximo passo', 'inscricao', 'participar', 'participe', 'checkout'];
   const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-  const nonCheckoutLabels = [...FAQ.map((f) => f.question), 'Ver meus kits', 'Ver kits', 'Termos de Uso', 'Política de Privacidade', 'Contato', ...PREVIEWS.map((p) => p.title)];
+  const nonCheckoutLabels = [...FAQ.map((f) => f.question), 'Ou comece pelo Kit Básico por R$ 9,90', 'Ver kits', 'Termos de Uso', 'Política de Privacidade', 'Contato', ...PREVIEWS.map((p) => p.title)];
   for (const label of nonCheckoutLabels) {
     for (const k of keywords) assert.ok(!normalize(label).includes(k), `"${label}" contém "${k}"`);
   }
