@@ -1,6 +1,8 @@
 /**
  * Conteúdo da página (textos e imagens). Tudo aqui foi conferido nos arquivos
- * reais do produto (PDF de 100 páginas + PDFs dos bônus em C:\DANONE\ofertas).
+ * reais do produto (pasta "Planner-2027-Kit-Premium-para-clientes": índice,
+ * 300 materiais em 12 categorias e 10 bônus). As imagens mostram páginas reais
+ * desses PDFs. O Kit Básico entrega os materiais 001 a 100 (4 primeiras categorias).
  */
 
 /**
@@ -32,69 +34,96 @@ const responsive = (
 });
 
 export const HERO_IMAGE = responsive(
-  'hero',
+  'hero-v2',
   [800, 1520],
   { width: 1520, height: 1040 },
-  'Páginas reais da Coleção Planner 2027 no tablet, no celular e impressas: Organizador Semanal, Registro de Hábitos, Metas Bem Definidas e Calendário Anual 2027'
+  'Páginas reais da Coleção Planner 2027: Calendário anual 2027 no tablet, Planejamento semanal clássico e Rotina da manhã no celular, e as páginas impressas Janeiro 2027 e Mapa dos sonhos para 2027'
 );
 
 export const DELIVERY_IMAGE = responsive(
-  'entrega',
+  'entrega-v2',
   [640, 1000],
   { width: 1000, height: 750 },
-  'Página de metas aberta no celular ao lado das mesmas páginas impressas em A4'
+  'Calendário de Janeiro 2027 aberto no celular ao lado da mesma página impressa em A4, com o Calendário anual 2027 atrás'
 );
 
 export interface PreviewItem {
   id: string;
   title: string;
   benefit: string;
+  /** Preenchido quando a página não vem nos dois kits (ex.: "Kit Premium"). */
+  onlyIn?: string;
   thumb: ResponsiveImage;
-  full: string;
+  /** Página inteira, sem fundo, mostrada na prévia ampliada. */
+  full: { src: string; width: number; height: number; alt: string };
 }
 
-const preview = (name: string, alt: string): { thumb: ResponsiveImage; full: string } => ({
-  thumb: responsive(name, [600, 1200], { width: 1200, height: 1200 }, alt),
-  full: `/assets/mockups/${name}-1200.webp`,
+/** `page` é o título impresso na página mostrada em destaque. */
+const preview = (name: string, page: string, alt: string): Pick<PreviewItem, 'thumb' | 'full'> => ({
+  thumb: responsive(`${name}-v2`, [600, 1200], { width: 1200, height: 1200 }, alt),
+  full: {
+    src: `/assets/mockups/${name}-pagina-1000.webp`,
+    width: 1000,
+    height: 1414,
+    alt: `Página ${page} inteira, como vem no PDF`,
+  },
 });
 
 export const PREVIEWS: PreviewItem[] = [
   {
     id: 'semanal',
-    title: 'Organizador semanal',
-    benefit: 'Distribua as tarefas de segunda a domingo, defina 3 prioridades e acompanhe hábitos da semana.',
-    ...preview('prev-semanal', 'Páginas impressas do Organizador Semanal e do Planejador Mensal'),
+    title: 'Planejamento semanal',
+    benefit: 'Os 7 dias em uma página: compromissos de segunda a domingo, o foco da semana e o que você aprendeu.',
+    ...preview(
+      'prev-semanal',
+      'Planejamento semanal clássico',
+      'Página Planejamento semanal clássico, com espaço de segunda a domingo e quadro de aprendizado da semana, sobre a página Checklist de início de semana'
+    ),
   },
   {
     id: 'financeiro',
     title: 'Controle financeiro',
-    benefit: 'Compare o planejado com o realizado, anote os gastos do dia e acompanhe sua meta de economia.',
+    benefit: 'Anote entradas e saídas com data e categoria e feche o período sabendo o seu saldo.',
+    onlyIn: 'Kit Premium',
     ...preview(
       'prev-financeiro',
-      'Páginas impressas de Orçamento Mensal, Controle de Despesas Diárias e Planejamento de Economia'
+      'Controle de receitas e despesas',
+      'Página Controle de receitas e despesas, com colunas de data, descrição, categoria, entrada e saída e quadro de saldo do período, sobre a página Orçamento mensal doméstico'
     ),
   },
   {
     id: 'metas',
     title: 'Planejamento de metas',
-    benefit: 'Escreva o objetivo, o porquê, os próximos passos e o prazo de cada meta de 2027.',
-    ...preview('prev-metas', 'Páginas impressas de Metas Bem Definidas e Visão Anual de Metas'),
+    benefit: 'Decida o que quer manter, começar, reduzir e transformar em 2027 e escreva a próxima ação.',
+    ...preview(
+      'prev-metas',
+      'Mapa dos sonhos para 2027',
+      'Página Mapa dos sonhos para 2027, com os campos o que quero manter, começar, reduzir e transformar, sobre a página Metas pessoais do ano'
+    ),
   },
 ];
 
-/** Categorias que existem no PDF da coleção (cabeçalho de cada página). */
+/**
+ * As 12 categorias do índice do kit, na ordem dos materiais (25 em cada).
+ * O Kit Básico traz as 4 primeiras (materiais 001 a 100); o Premium, todas.
+ */
 export const CATEGORIES: string[] = [
-  'Planejamento',
-  'Metas e objetivos',
-  'Rotina e hábitos',
-  'Finanças',
-  'Bem-estar',
-  'Casa e rotina',
-  'Estudos',
-  'Projetos e trabalho',
-  'Conteúdo e negócios',
-  'Viagens e eventos',
+  'Rotina e tempo',
+  'Semanas e tarefas',
+  'Calendários e datas 2027',
+  'Metas e projetos',
+  'Hábitos e constância',
+  'Finanças pessoais',
+  'Casa e vida prática',
+  'Estudos e aprendizado',
+  'Trabalho e produtividade',
+  'Autocuidado e equilíbrio',
+  'Família e relações',
+  'Revisões e recomeços',
 ];
+
+/** Quantas categorias (do começo da lista acima) vêm no Kit Básico. */
+export const BASIC_CATEGORY_COUNT = 4;
 
 export interface FaqItem {
   id: string;

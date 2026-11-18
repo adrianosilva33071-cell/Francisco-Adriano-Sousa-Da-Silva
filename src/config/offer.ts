@@ -16,7 +16,8 @@ export interface Kit {
   materialsCount: number;
   bonusCount: number;
   /**
-   * Bônus com arquivo confirmado na pasta do produto (C:\DANONE\ofertas).
+   * Bônus com arquivo confirmado na pasta do produto
+   * ("Planner-2027-Kit-Premium-para-clientes", pasta 02-Bonus), com o nome da capa.
    * Nunca liste aqui um bônus que não exista de verdade.
    */
   documentedBonuses: string[];
@@ -54,16 +55,17 @@ export const KITS: Record<KitId, Kit> = {
     materialsCount: 100,
     bonusCount: 0,
     documentedBonuses: [],
+    // Materiais 001 a 100: as 4 primeiras categorias do índice.
     highlights: [
       'PDF em tamanho A4: imprima ou abra no celular',
       'Planejamento semanal, mensal e anual',
-      'Metas, hábitos e rotina',
-      'Finanças, casa, estudos e outras categorias',
+      'Rotina e tempo, semanas e tarefas',
+      'Calendários 2027, metas e projetos',
     ],
     checkoutUrl: CHECKOUT_URLS.basico,
     image: kitImage(
-      'kit-basico',
-      'Kit Básico: páginas reais impressas em A4, com o Planejador Mensal sobre um bloco de folhas e as páginas Rotina da Manhã, Registro de Hábitos, Metas Bem Definidas e Visão Anual de Metas'
+      'kit-basico-v2',
+      'Kit Básico: páginas reais impressas em A4, com o Planejamento semanal clássico sobre um bloco de folhas e as páginas Calendário anual 2027, Janeiro 2027, Mapa da rotina atual e Mapa dos sonhos para 2027'
     ),
   },
   premium: {
@@ -73,10 +75,10 @@ export const KITS: Record<KitId, Kit> = {
     materialsCount: 300,
     bonusCount: 10,
     documentedBonuses: [
-      'Guia de Organização e Produtividade',
-      'Controle Financeiro Pessoal',
-      'Planner Financeiro Mensal',
-      'Pack de Listas e Organizadores Extras',
+      'Primeiros 7 dias de organização',
+      'Desafio de 21 dias — um passo por vez',
+      'Finanças do dia a dia',
+      'Metas em 90 dias',
     ],
     highlights: [
       'PDF em tamanho A4: imprima ou abra no celular',
@@ -87,8 +89,8 @@ export const KITS: Record<KitId, Kit> = {
     checkoutUrl: CHECKOUT_URLS.premium,
     badge: 'MAIS COMPLETO',
     image: kitImage(
-      'kit-premium',
-      'Kit Premium: Calendário Anual 2027 no tablet, Registro de Hábitos no celular, um bloco de páginas da coleção e as capas reais dos bônus Guia de Organização e Produtividade, Controle Financeiro Pessoal, Planner Financeiro Mensal e Pack de Listas e Organizadores Extras'
+      'kit-premium-v2',
+      'Kit Premium: capa real do kit sobre um bloco de páginas e as capas dos 10 bônus: Primeiros 7 dias de organização, Desafio de 21 dias, Finanças do dia a dia, Metas em 90 dias, Foco e uso consciente do celular, Casa leve em 15 minutos, Estudar com clareza, Autocuidado na vida real, Cardápio e compras conscientes e Retrospectiva mês a mês de 2027'
     ),
   },
 };

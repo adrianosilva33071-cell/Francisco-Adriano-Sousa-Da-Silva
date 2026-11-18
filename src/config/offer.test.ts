@@ -43,10 +43,10 @@ test('bônus: só nomes com arquivo confirmado e nunca mais do que o total anunc
   assert.equal(KITS.basico.documentedBonuses.length, 0);
   assert.ok(KITS.premium.documentedBonuses.length <= KITS.premium.bonusCount);
   assert.deepEqual(KITS.premium.documentedBonuses, [
-    'Guia de Organização e Produtividade',
-    'Controle Financeiro Pessoal',
-    'Planner Financeiro Mensal',
-    'Pack de Listas e Organizadores Extras',
+    'Primeiros 7 dias de organização',
+    'Desafio de 21 dias — um passo por vez',
+    'Finanças do dia a dia',
+    'Metas em 90 dias',
   ]);
 });
 
@@ -88,14 +88,24 @@ test('imagens: todas existem e são leves', () => {
     ...[HERO_IMAGE, DELIVERY_IMAGE, ...PREVIEWS.map((p) => p.thumb), KITS.basico.image, KITS.premium.image].flatMap((img) =>
       [img.src, ...img.srcSetAvif.split(','), ...img.srcSetWebp.split(',')].map((s) => s.trim().split(' ')[0])
     ),
-    ...PREVIEWS.map((p) => p.full),
-    '/assets/mockups/og-1200x630.jpg',
+    ...PREVIEWS.map((p) => p.full.src),
+    // Tudo que o index.html aponta: preload da imagem principal, og:image, twitter:image e JSON-LD.
+    ...[...read('index.html').matchAll(/\/assets\/mockups\/[\w.-]+/g)].map((m) => m[0]),
   ];
+  assert.ok(urls.some((u) => u.endsWith('.jpg')), 'index.html deveria apontar a imagem de compartilhamento (og:image)');
   for (const url of new Set(urls)) {
     const file = path.join(root, 'public', url);
     assert.ok(existsExactCase(url), `imagem ausente (ou com caixa diferente): ${url}`);
     assert.ok(fs.statSync(file).size < 160 * 1024, `imagem pesada: ${url}`);
   }
+});
+
+test('prévias: a página ampliada tem a proporção do A4 e o aviso de kit só aparece onde precisa', () => {
+  for (const p of PREVIEWS) {
+    assert.ok(Math.abs(p.full.height / p.full.width - Math.SQRT2) < 0.01, `${p.title}: página ampliada fora da proporção A4`);
+  }
+  // O controle financeiro é da categoria Finanças pessoais (materiais 126 a 150): não vem no Kit Básico.
+  assert.equal(PREVIEWS.find((p) => p.id === 'financeiro')?.onlyIn, 'Kit Premium');
 });
 
 test('rastreamento: index.html tem só os 2 scripts da UTMify, sem Pixel manual nem proxy de fetch', () => {

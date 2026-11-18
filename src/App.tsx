@@ -9,7 +9,15 @@ import {
   LOWEST_PRICE,
   premiumComparison,
 } from './config/offer';
-import { CATEGORIES, DELIVERY_IMAGE, FAQ, HERO_IMAGE, PreviewItem, PREVIEWS } from './config/content';
+import {
+  BASIC_CATEGORY_COUNT,
+  CATEGORIES,
+  DELIVERY_IMAGE,
+  FAQ,
+  HERO_IMAGE,
+  PreviewItem,
+  PREVIEWS,
+} from './config/content';
 import { Picture } from './components/Picture';
 import type { LegalModalType } from './components/LegalModal';
 
@@ -268,6 +276,11 @@ export default function App() {
                     </span>
                   </button>
                   <div className="min-w-0 text-left">
+                    {item.onlyIn && (
+                      <p className="mb-1.5 inline-block rounded-full bg-plum text-white text-[12px] font-semibold tracking-[0.02em] px-2.5 py-0.5">
+                        Só no {item.onlyIn}
+                      </p>
+                    )}
                     <h3 className="font-bold text-plum text-[17px] leading-snug">{item.title}</h3>
                     <p className="mt-1 text-muted text-[15px] leading-[1.5]">{item.benefit}</p>
                   </div>
@@ -276,8 +289,15 @@ export default function App() {
             </ul>
             <div className="mt-7 text-center">
               <p className="text-[14px] font-semibold text-plum">Categorias da coleção</p>
-              <ul className="mt-2.5 flex flex-wrap justify-center gap-2">
-                {CATEGORIES.map((c) => (
+              <p className="mt-3 text-[13px] text-muted">Nos dois kits</p>
+              <ul className="mt-1.5 flex flex-wrap justify-center gap-2">
+                {CATEGORIES.slice(0, BASIC_CATEGORY_COUNT).map((c) => (
+                  <li key={c} className="rounded-full bg-blush px-3 py-1 text-[14px] text-rose-deep">{c}</li>
+                ))}
+              </ul>
+              <p className="mt-4 text-[13px] text-muted">Só no Kit Premium</p>
+              <ul className="mt-1.5 flex flex-wrap justify-center gap-2">
+                {CATEGORIES.slice(BASIC_CATEGORY_COUNT).map((c) => (
                   <li key={c} className="rounded-full bg-blush px-3 py-1 text-[14px] text-rose-deep">{c}</li>
                 ))}
               </ul>
@@ -426,11 +446,11 @@ export default function App() {
               <X className="w-5 h-5" aria-hidden="true" />
             </button>
             <img
-              src={zoom.full}
-              alt={zoom.thumb.alt}
-              width={1200}
-              height={1200}
-              className="w-full h-auto max-h-[80vh] object-contain rounded-[16px] bg-white block"
+              src={zoom.full.src}
+              alt={zoom.full.alt}
+              width={zoom.full.width}
+              height={zoom.full.height}
+              className="block mx-auto w-auto max-w-full h-auto max-h-[80vh] rounded-[10px] bg-white"
             />
             <p className="mt-3 text-center text-white font-semibold text-[16px]">{zoom.title}</p>
           </div>
