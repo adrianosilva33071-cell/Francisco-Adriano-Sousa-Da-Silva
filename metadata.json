@@ -1,6 +1,6 @@
 {
-  "name": "Calendários 2027 Para Imprimir — Coleção Digital",
-  "description": "Organize seu 2027 com o Kit Premium Planner 2027. São 150 materiais digitais, 6 bônus complementares e acesso digital.",
+  "name": "Coleção Planner 2027 — Página de Vendas",
+  "description": "Página de vendas da Coleção Planner 2027: Kit Básico (100 materiais digitais, R$ 9,90) e Kit Premium (300 materiais digitais + 10 bônus, R$ 24,90), com checkout Cakto e rastreamento UTMify.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

@@ -2,194 +2,78 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      (function () {
-        try {
-          var origDefineProperty = Object.defineProperty;
-          function wrapFetchProxy(fn) {
-            if (typeof fn !== "function" || typeof Proxy === "undefined") return fn;
-            return new Proxy(fn, {
-              apply: function (target, thisArg, args) {
-                var input = args && args[0];
-                var url =
-                  typeof input === "string"
-                    ? input
-                    : input && typeof input.url === "string"
-                      ? input.url
-                      : String(input || "");
-                var isUtmify =
-                  url.indexOf("localhost:3001/tracking") !== -1 ||
-                  url.indexOf("tracking.utmify.com.br/tracking/v1/events") !== -1;
-                try {
-                  var res = Reflect.apply(target, thisArg, args);
-                  if (!isUtmify) return res;
-                  return Promise.resolve(res).catch(function () {
-                    return new Response(JSON.stringify({ ok: true, lead: {} }), {
-                      status: 200,
-                      headers: { "Content-Type": "application/json" },
-                    });
-                  });
-                } catch (err) {
-                  if (isUtmify) {
-                    return Promise.resolve(
-                      new Response(JSON.stringify({ ok: true, lead: {} }), {
-                        status: 200,
-                        headers: { "Content-Type": "application/json" },
-                      })
-                    );
-                  }
-                  throw err;
-                }
-              },
-            });
-          }
-
-          var baseFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : undefined;
-          var activeGetter = function () {
-            return baseFetch ? wrapFetchProxy(baseFetch) : undefined;
-          };
-
-          var desc = Object.getOwnPropertyDescriptor(window, "fetch");
-          if (!desc || desc.configurable !== false) {
-            origDefineProperty.call(Object, window, "fetch", {
-              configurable: true,
-              enumerable: desc ? desc.enumerable !== false : true,
-              get: function () {
-                return activeGetter();
-              },
-              set: function (nextFn) {
-                if (typeof nextFn === "function") {
-                  var proxied = wrapFetchProxy(nextFn);
-                  activeGetter = function () {
-                    return proxied;
-                  };
-                }
-              },
-            });
-          }
-
-          Object.defineProperty = function (obj, prop, attributes) {
-            if (
-              (obj === window || obj === globalThis) &&
-              prop === "fetch" &&
-              attributes &&
-              typeof attributes.get === "function" &&
-              typeof attributes.set !== "function"
-            ) {
-              var origGet = attributes.get;
-              activeGetter = function () {
-                return wrapFetchProxy(origGet.call(obj));
-              };
-              return origDefineProperty.call(Object, obj, prop, {
-                configurable: true,
-                enumerable: attributes.enumerable !== false,
-                get: function () {
-                  return activeGetter();
-                },
-                set: function (nextFn) {
-                  if (typeof nextFn === "function") {
-                    var proxied = wrapFetchProxy(nextFn);
-                    activeGetter = function () {
-                      return proxied;
-                    };
-                  }
-                },
-              });
-            }
-            return origDefineProperty.call(Object, obj, prop, attributes);
-          };
-        } catch (_e) {}
-      })();
-    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Planner 2027 Digital | Kit Básico (100 Materiais) e Kit Premium (250 Materiais)</title>
+    <title>Coleção Planner 2027 | Kit Básico R$ 9,90 e Kit Premium R$ 24,90</title>
     <meta
       name="description"
-      content="Organize seu 2027 com materiais que vão transformar sua rotina. Escolha entre o Kit Básico com 100 materiais digitais (R$ 9,90) ou o Kit Premium com 250 materiais digitais (R$ 27,90)."
+      content="Materiais digitais em PDF A4 para organizar sua rotina, metas, hábitos e finanças em 2027. Kit Básico com 100 materiais por R$ 9,90 ou Kit Premium com 300 materiais + 10 bônus por R$ 24,90. Pagamento único."
     />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#F01579" />
+    <meta name="theme-color" content="#c22182" />
+    <link rel="canonical" href="https://colecaoplanner2027.vercel.app/" />
     <link
       rel="icon"
       type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23F01579'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-family='sans-serif' font-weight='bold' font-size='26'%3E27%3C/text%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23c22182'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-family='sans-serif' font-weight='bold' font-size='26'%3E27%3C/text%3E%3C/svg%3E"
     />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="Coleção Planner 2027" />
-    <meta
-      property="og:title"
-      content="Planner 2027 Digital | Kit Básico (100 Materiais) e Kit Premium (250 Materiais)"
-    />
+    <meta property="og:url" content="https://colecaoplanner2027.vercel.app/" />
+    <meta property="og:title" content="Coleção Planner 2027 | Seu 2027 mais organizado começa aqui" />
     <meta
       property="og:description"
-      content="Organize seu 2027 com materiais que vão transformar sua rotina. Escolha entre o Kit Básico com 100 materiais digitais (R$ 9,90) ou o Kit Premium com 250 materiais digitais (R$ 27,90)."
+      content="Planners, metas, hábitos e finanças em PDF A4 para imprimir ou usar no celular. Kits a partir de R$ 9,90, pagamento único."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/assets/planners/hero-planner.webp" />
+    <meta property="og:image" content="https://colecaoplanner2027.vercel.app/assets/mockups/og-1200x630.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Planner 2027 Digital | Kit Básico (100 Materiais) e Kit Premium (250 Materiais)"
-    />
+    <meta name="twitter:title" content="Coleção Planner 2027 | Seu 2027 mais organizado começa aqui" />
     <meta
       name="twitter:description"
-      content="Organize seu 2027 com materiais que vão transformar sua rotina. Escolha entre o Kit Básico com 100 materiais digitais (R$ 9,90) ou o Kit Premium com 250 materiais digitais (R$ 27,90)."
+      content="Planners, metas, hábitos e finanças em PDF A4 para imprimir ou usar no celular. Kits a partir de R$ 9,90, pagamento único."
     />
-    <meta name="twitter:image" content="/assets/planners/hero-planner.webp" />
+    <meta name="twitter:image" content="https://colecaoplanner2027.vercel.app/assets/mockups/og-1200x630.jpg" />
 
-    <!-- Preconnect para checkout e fontes para reduzir latência em redes 4G -->
+    <!-- Conexões antecipadas com checkout e rastreamento (menos latência no 4G) -->
     <link rel="preconnect" href="https://pay.cakto.com.br" />
     <link rel="dns-prefetch" href="https://pay.cakto.com.br" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://cdn.utmify.com.br" crossorigin />
+    <link rel="preconnect" href="https://tracking.utmify.com.br" crossorigin />
     <link rel="preconnect" href="https://connect.facebook.net" crossorigin />
 
-    <!-- Preload responsivo da imagem principal (LCP) priorizando AVIF mobile -->
+    <!-- Imagem principal (LCP): AVIF responsivo com prioridade alta -->
     <link
       rel="preload"
       as="image"
       type="image/avif"
-      href="/assets/planners/hero-planner-640w.avif"
-      imagesrcset="/assets/planners/hero-planner-640w.avif 640w, /assets/planners/hero-planner.avif 1272w"
-      imagesizes="(max-width: 1023px) 92vw, 540px"
+      href="/assets/mockups/hero-800.avif"
+      imagesrcset="/assets/mockups/hero-800.avif 800w, /assets/mockups/hero-1520.avif 1520w"
+      imagesizes="(min-width: 768px) 500px, calc(100vw - 32px)"
       fetchpriority="high"
     />
 
-    <!-- Carregamento assíncrono não-bloqueante de fontes -->
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-      media="print"
-      onload="this.media='all'"
-    />
-    <noscript>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-      />
-    </noscript>
+    <!-- Fontes do próprio site: as da primeira dobra chegam junto com o CSS -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/fraunces-600-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-400-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-700-latin.woff2" crossorigin />
 
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "Product",
         "name": "Coleção Planner 2027",
-        "description": "Tenha ferramentas práticas para organizar suas tarefas, planejar suas metas, acompanhar seus hábitos e cuidar melhor da sua vida financeira.",
-        "image": "/assets/planners/hero-planner.webp",
+        "description": "Materiais digitais em PDF A4 para organizar rotina, metas, hábitos e finanças em 2027.",
+        "image": "https://colecaoplanner2027.vercel.app/assets/mockups/hero-1520.webp",
         "brand": {
           "@type": "Brand",
-          "name": "Planner 2027"
+          "name": "Coleção Planner 2027"
         },
         "offers": {
           "@type": "AggregateOffer",
           "lowPrice": "9.90",
-          "highPrice": "27.90",
+          "highPrice": "24.90",
           "priceCurrency": "BRL",
           "offerCount": "2",
           "availability": "https://schema.org/InStock"

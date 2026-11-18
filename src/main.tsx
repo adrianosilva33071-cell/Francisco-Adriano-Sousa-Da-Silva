@@ -1,11 +1,8 @@
-import {createRoot} from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import {installSafeFetchProxy} from './utils/catalogData';
+import { installCheckoutLinkGuard } from './lib/checkoutLink';
 
-if (typeof window !== 'undefined') {
-  installSafeFetchProxy(window as unknown as Record<string, unknown>);
-}
+installCheckoutLinkGuard(window);
 
 createRoot(document.getElementById('root')!).render(<App />);
-
